@@ -2,13 +2,17 @@ import {PropTypes} from '@orioro/web-ui-core'
 
 const COMPONENT_NAME = 'game-activity'
 
-const ACTIVITY_CARD_SELECTOR = '.activity__card'
+const SILHOUETTE_SELECTOR = '.activity__card__illustration__silhouette'
 
 const createInstance = (system, componentRoot, {
   points
 }) => {
   const activityId = componentRoot.getAttribute('id')
-  const card = componentRoot.querySelector(ACTIVITY_CARD_SELECTOR)
+  const silhouette = componentRoot.querySelector(SILHOUETTE_SELECTOR)
+
+  silhouette.addEventListener('click', () => {
+    alert('Abra a câmera e busque no mapa!')
+  })
 
   const unlock = () => {
     window.game.unlockActivity(activityId)

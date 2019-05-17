@@ -8,7 +8,7 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body data-component="game">
+<body id="game" data-component="game">
   <header
     id="game-header">
 
@@ -26,9 +26,10 @@
 
   <button
     data-component="trigger"
+    data-trigger-target="#game"
     data-trigger-action="resetGame">
-      Reiniciar jogo
-    </button>
+    Reiniciar jogo
+  </button>
 
   <script type="text/javascript" src="index.bundle.js"></script>
 </body>
