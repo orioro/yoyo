@@ -1,0 +1,51 @@
+.activity {
+  > .activity__card {
+    > .activity__card__illustration {
+      position: relative;
+
+      > img.activity__card__illustration__filled {
+        display: none;
+      }
+
+      > img.activity__card__illustration__silhouette {
+        display: block;
+      }
+    }
+  }
+
+  > .activity__details {
+    display: none;
+
+    position: fixed;
+    z-index: 2;
+    top: @game-header-height;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background-color: white;
+  }
+
+  &.activity--details-open {
+    > .activity__details {
+      display: block;
+    }
+  }
+
+  //
+  // Unlocked state
+  //
+  &.activity--details-unlocked {
+    > .activity__card {
+      > .activity__card__illustration {
+        > img.activity__card__illustration__filled {
+          display: block;
+        }
+
+        > img.activity__card__illustration__silhouette {
+          display: none;
+        }
+      }
+    }
+  }
+}

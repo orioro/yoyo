@@ -1,0 +1,29 @@
+@import '../node_modules/@orioro/web-ui-styles/less/base.less';
+@import '../node_modules/@orioro/web-ui-styles/less/grid.less';
+@import '../node_modules/@orioro/web-ui-styles/less/lists.less';
+@import '../node_modules/@orioro/web-ui-styles/less/spacing.less';
+
+
+@import './less/components/activity.less';
+
+.mx__grid();
+.mx__lists();
+.mx__spacing();
+
+@game-header-height: 50px;
+
+#game-header {
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: @game-header-height;
+
+  background-color: grey;
+}
+
+#game-main {
+  margin-top: @game-header-height;
+}

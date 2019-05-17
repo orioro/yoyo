@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body data-component="game">
+  <header
+    id="game-header">
+
+    <div data-component="game-score"></div>
+  </header>
+  <main
+    id="game-main"
+    class="p-8">
+    <ul class="list list--2">
+      {% for activity in activities %}
+      <li>{{ activity.content | safe }}</li>
+      {% endfor %}
+    </ul>
+  </main>
+
+  <button
+    data-component="trigger"
+    data-trigger-action="resetGame">
+      Reiniciar jogo
+    </button>
+
+  <script type="text/javascript" src="index.bundle.js"></script>
+</body>
+</html>
