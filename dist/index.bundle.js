@@ -500,7 +500,6 @@
       };
     }
   }
-  //# sourceMappingURL=index.mjs.map
 
   var DOCUMENT_NODE_TYPE = 9;
 
@@ -3120,15 +3119,17 @@
     const card = componentRoot.querySelector(ACTIVITY_CARD_SELECTOR);
 
     const unlock = () => {
-      window.game.unlockActivity(activityId); // componentRoot.classList.add('activity--details-open')
-      // componentRoot.classList.add('activity--details-unlocked')
+      window.game.unlockActivity(activityId);
+      open();
     };
 
     const open = () => {
+      window.game.activeActivity = activityId;
       componentRoot.classList.add('activity--details-open');
     };
 
     const close = () => {
+      window.game.activeActivity = null;
       componentRoot.classList.remove('activity--details-open');
     };
 
@@ -3142,7 +3143,6 @@
       if (window.game.activeActivity === activityId) {
         open();
       } else {
-        window.game.activeActivity = null;
         close();
       }
     };

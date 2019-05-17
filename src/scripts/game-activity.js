@@ -13,15 +13,16 @@ const createInstance = (system, componentRoot, {
   const unlock = () => {
     window.game.unlockActivity(activityId)
 
-    // componentRoot.classList.add('activity--details-open')
-    // componentRoot.classList.add('activity--details-unlocked')
+    open()
   }
 
   const open = () => {
+    window.game.activeActivity = activityId
     componentRoot.classList.add('activity--details-open')
   }
 
   const close = () => {
+    window.game.activeActivity = null
     componentRoot.classList.remove('activity--details-open')
   }
 
@@ -35,7 +36,6 @@ const createInstance = (system, componentRoot, {
     if (window.game.activeActivity === activityId) {
       open()
     } else {
-      window.game.activeActivity = null
       close()
     }
   }
