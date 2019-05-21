@@ -4,6 +4,7 @@
   <title>
     Yoyo
   </title>
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:700|Raleway:500,700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" type="text/css" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,43 +13,103 @@
   <header
     id="game-header">
 
-    <div data-component="game-score"></div>
+    <div class="content-area">
+      <a href="index.html">
+        <img src="resources/ic_arrow_back_2.png" alt="">
+      </a>
+
+      <div class="score-counter text-border">
+        <span data-component="game-score"> </span>
+        x
+        <img src="resources/activity-images/donuts.png" alt="">
+      </div>
+    </div>
   </header>
   <main
-    id="game-main"
-    class="p-8">
-    <ul class="list list--2">
-      
-      <li><div
+    id="game-main">
+
+    <div class="content-area">
+      <h2 class="text-border">
+        Descubra as atividades
+      </h2>
+      <p>
+        Ao encontrar os códigos no pôster e completar as atividades, você acumula donuts para liberar o desafio desta edição.
+      </p>
+      <ul class="list">
+        
+        <li><div
   class="activity"
   id="atividade-1"
   data-component="game-activity"
-  data-game-activity-points="4">
+  data-game-activity-points="3">
   <div class="activity__card">
+    <h1 class="text-border fg-laranja h1-silhouette">??</h1>
+    <h1 class="text-border fg-turquesa h1-filled">1</h1>
+    <!-- comando para publicar pagina git subtree --prefix dist push origin gh-pages -->
     <div class="activity__card__illustration">
       <img
         class="activity__card__illustration__silhouette"
-        src="resources/activity-images/casa-silhueta.png">
+        src="resources/activity-images/mulhernoespelho-silhueta.png">
       <img
         class="activity__card__illustration__filled"
-        src="resources/activity-images/casa.png">
+        src="resources/activity-images/mulhernoespelho.png">
+    </div>
+    <div class="score-counter text-border">
+      <span>3</span>
+      x
+      <img src="resources/donuts-3.png" alt="">
     </div>
   </div>
 
-  <div class="activity__details">
-    <h1>
-      Detalhes da atividade 1
-    </h1>
 
-    <button
-      data-component="trigger"
-      data-trigger-action="close">
-      Concluir atividade
-    </button>
+  <div class="activity__details">
+      <section class="section-1 bg-limao">
+        <div class="content-area">
+          <img src="resources/activity-gifs/mulhernoespelho.gif" class="activity_thumb">
+          <h2 class="text-border">Atividade encontrada!!!</h2>
+
+          <!-- <img src="resources/activity-gifs/donuts.gif" class="donuts-points-image"> -->
+          <div class="donuts-points">
+            <img src="resources/activity-images/donuts.png" alt="" class="animated-donut donut-1">
+            <img src="resources/activity-images/donuts.png" alt="" class="animated-donut donut-2">
+            <img src="resources/activity-images/donuts.png" alt="" class="animated-donut donut-3">
+          </div>
+
+        </div>
+
+
+      </section>
+
+      <section class="section-2 bg-rosa">
+        <div class="content-area">
+          <h1 class="text-border fg-turquesa">
+            Pense rápido!
+          </h1>
+          <h3>Neste desafio, não basta saber soletrar, é preciso conseguir ler de trás para frente.</h3>
+          <p>Reúna a família, aperte o play para ouvir uma palavra pronunciada de trás para frente e veja quem consegue descobrir qual é a palavra primeiro. Só tem uma regra: não vale escrever!</p>
+
+          <!-- <audio src="resources/activity-1/agramaeamarga.ogg" type="audio/ogg"></audio> -->
+          <audio controls>
+            <source src="resources/activity-1/agramaeamarga.ogg" type="audio/ogg">
+          Your browser does not support the audio element.
+          </audio>
+
+          <button
+            data-component="trigger"
+            data-trigger-action="close"
+            class="bg-turquesa">
+            encontrar mais atividades
+          </button>
+
+        </div>
+      </section>
+
+
   </div>
-</div></li>
-      
-      <li><div
+</div>
+</li>
+        
+        <li><div
   class="activity"
   id="atividade-2"
   data-component="game-activity"
@@ -76,16 +137,35 @@
     </button>
   </div>
 </div></li>
-      
-    </ul>
-  </main>
+        
+      </ul>
 
-  <button
-    data-component="trigger"
-    data-trigger-target="#game"
-    data-trigger-action="resetGame">
-    Reiniciar jogo
-  </button>
+
+      <div class="desafio">
+        <p>Conquiste <strong>20</strong> donuts e libere o desafio desta edição!</p>
+        <div class="desafio-card">
+          <h1 class="text-border fg-rosa">Desafio</h1>
+          <img
+            src="resources/activity-images/circo-silhueta.png">
+          <div class="score-counter text-border">
+            <span>?</span>
+            x
+            <img src="resources/donuts-8.png" alt="">
+          </div>
+        </div>
+      </div>
+
+      <button
+        data-component="trigger"
+        data-trigger-target="#game"
+        data-trigger-action="resetGame"
+        class="bg-limao reiniciar-jogo">
+        Reiniciar jogo
+      </button>
+
+    </div>
+
+  </main>
 
   <script type="text/javascript" src="index.bundle.js"></script>
 </body>

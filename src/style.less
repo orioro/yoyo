@@ -2,28 +2,198 @@
 @import '../node_modules/@orioro/web-ui-styles/less/grid.less';
 @import '../node_modules/@orioro/web-ui-styles/less/lists.less';
 @import '../node_modules/@orioro/web-ui-styles/less/spacing.less';
+@import '../node_modules/@orioro/web-ui-styles/less/colors.less';
 
 
 @import './less/components/activity.less';
+@import './less/components/header.less';
 
 .mx__grid();
 .mx__lists();
 .mx__spacing();
+.mx__colors();
 
-@game-header-height: 50px;
+@game-header-height: 70px;
 
-#game-header {
-  position: fixed;
-  z-index: 2;
-  top: 0;
-  left: 0;
-  right: 0;
+@color-limao: #D1D63E;
+@color-cereja: #EF4567;
+@color-turquesa: #1EBADC;
+@color-rosa: #D39BC5;
+@color-laranja: #EDAD4B;
+@color-marrom: #A17A5F;
+@color-cinza: #9B9595;
+@ui--colors:
+  limao #D1D63E,
+  cereja #EF4567,
+  turquesa #1EBADC,
+  rosa #D39BC5,
+  laranja #EDAD4B,
+  marrom #A17A5F,
+  cinza #9B9595;
 
-  height: @game-header-height;
 
-  background-color: grey;
+body {
+  font-family: 'Raleway', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.content-area {
+  width: 90%;
+  min-width: 280px;
+  margin: 0 auto;
+}
+
+.text-border {
+  text-shadow: 1px 0 0 #000;
+  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+@font-face {
+    font-family: 'Macula Solid';
+    src: url('resources/font/Macula-Solid.eot');
+    src: url('resources/font/Macula-Solid.eot?#iefix') format('embedded-opentype'),
+        url('resources/font/Macula-Solid.woff2') format('woff2'),
+        url('resources/font/Macula-Solid.woff') format('woff'),
+        url('resources/font/Macula-Solid.ttf') format('truetype'),
+        url('resources/font/Macula-Solid.svg#Macula-Solid') format('svg');
+    font-weight: 500;
+    font-style: normal;
 }
 
 #game-main {
-  margin-top: @game-header-height;
+  padding-top: @game-header-height + 20px;
+  background-color: @color-limao;
+}
+
+h1 {
+  font-family: 'Macula Solid';
+  font-size: 40px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: @color-rosa;
+  text-align: center;
+
+  margin-bottom: 40px;
+}
+
+h2 {
+  font-family: 'Macula Solid';
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: @color-cereja;
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+h3 {
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.3;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+p {
+  text-align: center;
+  line-height: 1.5;
+}
+
+button {
+  padding: 12px 20px;
+  width: 100%;
+  text-align: center;
+  border: 2px solid black !important;
+  font-weight: 700;
+  line-height: 1.2;
+  color: black;
+  margin-top: 40px;
+}
+
+.reiniciar-jogo {
+  margin-bottom: 20px;
+}
+
+audio {
+  width: 100%;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+ul.list {
+  margin-top: 20px;
+  justify-content: space-between;
+  align-items: stretch;
+  align-content: stretch;
+
+  > li {
+    width: 48%;
+  }
+}
+
+.score-counter {
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+  color: white;
+
+  > span {
+    font-family: 'Fira Mono', monospace;
+    font-weight: 700;
+    font-size: 30px;
+    margin-right: 8px;
+  }
+
+  img {
+    height: 40px;
+    margin-left: 8px;
+    animation: float 3s ease-out infinite;
+  }
+
+  @keyframes spin {
+      from {transform:rotate(0deg);}
+      to {transform:rotate(360deg);}
+  }
+
+  @keyframes float {
+      0% {transform:translateY(0);}
+      50% {transform:translateY(-7px);}
+      100% {transform:translateY(0);}
+  }
+}
+
+.desafio {
+  margin-top: 25px;
+
+  > .desafio-card {
+    margin-top: 20px;
+    width: 100%;
+    display: block;
+    background-color: rgba(255,255,255,0.3);
+    border: dashed 2px black;
+    border-radius: 4px;
+    padding: 10px;
+    box-sizing: border-box;
+
+    > h1 {
+      margin: 0;
+    }
+
+    > img {
+      width: 60%;
+      margin: 10px auto;
+      display: block;
+      opacity: 0.4;
+    }
+
+    .score-counter img {
+      animation: none;
+    }
+  }
 }

@@ -1,0 +1,36 @@
+#game-header {
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: @game-header-height;
+
+  background-color: @color-limao;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  .content-area {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    a {
+      height: 44px;
+      width: 44px;
+      box-sizing: border-box;
+      padding: 0;
+
+      > img {
+        display: block;
+        width: 100%;
+        padding: 10px;
+      }
+    }
+  }
+}

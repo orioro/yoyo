@@ -4,6 +4,7 @@
   <title>
     Yoyo
   </title>
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:700|Raleway:500,700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" type="text/css" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,24 +13,60 @@
   <header
     id="game-header">
 
-    <div data-component="game-score"></div>
+    <div class="content-area">
+      <a href="index.html">
+        <img src="resources/ic_arrow_back_2.png" alt="">
+      </a>
+
+      <div class="score-counter text-border">
+        <span data-component="game-score"> </span>
+        x
+        <img src="resources/activity-images/donuts.png" alt="">
+      </div>
+    </div>
   </header>
   <main
-    id="game-main"
-    class="p-8">
-    <ul class="list list--2">
-      {% for activity in activities %}
-      <li>{{ activity.content | safe }}</li>
-      {% endfor %}
-    </ul>
-  </main>
+    id="game-main">
 
-  <button
-    data-component="trigger"
-    data-trigger-target="#game"
-    data-trigger-action="resetGame">
-    Reiniciar jogo
-  </button>
+    <div class="content-area">
+      <h2 class="text-border">
+        Descubra as atividades
+      </h2>
+      <p>
+        Ao encontrar os códigos no pôster e completar as atividades, você acumula donuts para liberar o desafio desta edição.
+      </p>
+      <ul class="list">
+        {% for activity in activities %}
+        <li>{{ activity.content | safe }}</li>
+        {% endfor %}
+      </ul>
+
+
+      <div class="desafio">
+        <p>Conquiste <strong>20</strong> donuts e libere o desafio desta edição!</p>
+        <div class="desafio-card">
+          <h1 class="text-border fg-rosa">Desafio</h1>
+          <img
+            src="resources/activity-images/circo-silhueta.png">
+          <div class="score-counter text-border">
+            <span>?</span>
+            x
+            <img src="resources/donuts-8.png" alt="">
+          </div>
+        </div>
+      </div>
+
+      <button
+        data-component="trigger"
+        data-trigger-target="#game"
+        data-trigger-action="resetGame"
+        class="bg-limao reiniciar-jogo">
+        Reiniciar jogo
+      </button>
+
+    </div>
+
+  </main>
 
   <script type="text/javascript" src="index.bundle.js"></script>
 </body>

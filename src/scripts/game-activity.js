@@ -11,7 +11,7 @@ const createInstance = (system, componentRoot, {
   const silhouette = componentRoot.querySelector(SILHOUETTE_SELECTOR)
 
   silhouette.addEventListener('click', () => {
-    alert('Abra a câmera e busque no mapa!')
+    alert('Abra a câmera e busque no pôster!')
   })
 
   const unlock = () => {
