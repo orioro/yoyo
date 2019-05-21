@@ -34,7 +34,6 @@
       };
     }
   }
-  //# sourceMappingURL=index.mjs.map
 
   var DOCUMENT_NODE_TYPE = 9;
 
@@ -2653,7 +2652,7 @@
     const activityId = componentRoot.getAttribute('id');
     const silhouette = componentRoot.querySelector(SILHOUETTE_SELECTOR);
     silhouette.addEventListener('click', () => {
-      alert('Abra a câmera e busque no mapa!');
+      alert('Abra a câmera e busque no pôster!');
     });
 
     const unlock = () => {

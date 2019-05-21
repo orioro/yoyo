@@ -13,7 +13,7 @@
 .mx__spacing();
 .mx__colors();
 
-@game-header-height: 70px;
+@game-header-height: 60px;
 
 @color-limao: #D1D63E;
 @color-cereja: #EF4567;
@@ -118,8 +118,9 @@ button {
 
 audio {
   width: 100%;
-  margin-top: 40px;
-  margin-bottom: 20px;
+  // max-width: 500px;
+  margin: 40px auto 20px auto;
+  min-height: 40px;
 }
 
 ul.list {
@@ -130,6 +131,7 @@ ul.list {
 
   > li {
     width: 48%;
+    margin-bottom: 15px;
   }
 }
 
@@ -151,7 +153,7 @@ ul.list {
   }
 
   img {
-    height: 40px;
+    height: 30px;
     margin-left: 8px;
     animation: float 3s ease-out infinite;
   }
@@ -169,7 +171,7 @@ ul.list {
 }
 
 .desafio {
-  margin-top: 25px;
+  margin-top: 45px;
 
   > .desafio-card {
     margin-top: 20px;
