@@ -20,7 +20,7 @@
       display: block;
     }
 
-    .h1-filled {
+    .h4-filled {
       display: none;
     }
 
@@ -60,7 +60,7 @@
 
     > .section-1 {
       padding-top: 20px;
-      padding-bottom: 40px;
+      padding-bottom: 20px;
     }
 
     > .section-2 {
@@ -119,6 +119,80 @@
           opacity: 1;
         }
     }
+    .atividade-encontrada {
+      position: relative;
+      z-index: 2;
+    }
+
+    .donuts-points-2 {
+      height: 40px;
+      width: 100%;
+      margin: 0 auto;
+      display: block;
+      text-align: center;
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,0);
+
+      > img {
+        width: 40px;
+        animation-name: subindo;
+        animation-duration: 3.8s;
+        opacity: 0;
+
+        &.rapido {
+          animation-name: subindo-rapido;
+        }
+
+        &.devagar {
+          animation-name: subindo-devagar;
+        }
+      }
+    }
+
+    @keyframes subindo {
+        0% {
+          transform: translateY(0) scale(0.1);
+          opacity: 0;
+        }
+        40% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-550%) scale(1);
+          opacity: 1;
+        }
+    }
+
+    @keyframes subindo-rapido {
+      0% {
+        transform: translateY(0) scale(0.1);
+        opacity: 0;
+      }
+      30% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-750%) scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes subindo-devagar {
+      0% {
+        transform: translateY(0) scale(0.1);
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-450%) scale(1.2);
+        opacity: 1;
+      }
+    }
 
     .step {
       margin-top: 40px;
@@ -150,7 +224,7 @@
         display: none;
       }
 
-      .h1-filled {
+      .h4-filled {
         display: block;
       }
 
