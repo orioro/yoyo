@@ -383,6 +383,7 @@ a {
   right: 0;
   bottom: 0;
   overflow: auto;
+  background-color: #D1D63E;
 }
 .activity > .activity__details > .section-1 {
   padding-top: 20px;
@@ -3515,6 +3516,9 @@ audio {
   margin: 0 auto;
   min-height: 40px;
 }
+iframe {
+  width: 100%;
+}
 ul.list {
   margin-top: 20px;
   justify-content: space-between;
@@ -3538,6 +3542,11 @@ ul.list > li {
   font-weight: 700;
   font-size: 30px;
   margin-right: 8px;
+  transform: rotateY(0);
+}
+.score-counter > span.score-added {
+  transform: rotateY(720deg);
+  transition: transform 1s ease-in-out;
 }
 .score-counter img {
   height: 30px;
@@ -3587,4 +3596,18 @@ ul.list > li {
 }
 .desafio > .desafio-card .score-counter img {
   animation: none;
+}
+#activity-item-container__atividade-8,
+#activity-item-container__atividade-10,
+#activity-item-container__atividade-11,
+#activity-item-container__atividade-12,
+#activity-item-container__atividade-13 {
+  width: 0;
+}
+#activity-item-container__atividade-8 .activity__card,
+#activity-item-container__atividade-10 .activity__card,
+#activity-item-container__atividade-11 .activity__card,
+#activity-item-container__atividade-12 .activity__card,
+#activity-item-container__atividade-13 .activity__card {
+  display: none;
 }

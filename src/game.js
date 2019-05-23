@@ -9,6 +9,8 @@ class Game extends EventEmitter {
     super()
     this.loadFromLocalStorage()
 
+    this.setMaxListeners(100)
+
     this.emit('game-updated')
   }
 
@@ -47,6 +49,13 @@ class Game extends EventEmitter {
 
   isActivityUnlocked(activityId) {
     return this.unlockedActivities.indexOf(activityId) !== -1
+  }
+
+  goToHome() {
+    this.activeActivity = null
+    this.saveToLocalStorage()
+
+    this.emit('game-updated')
   }
 
   loadFromLocalStorage() {

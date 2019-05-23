@@ -34,6 +34,7 @@
       };
     }
   }
+  //# sourceMappingURL=index.mjs.map
 
   var DOCUMENT_NODE_TYPE = 9;
 
@@ -2644,19 +2645,53 @@
   });
 
   const COMPONENT_NAME = 'game-activity';
-  const SILHOUETTE_SELECTOR = '.activity__card__illustration__silhouette';
+  const CARD_SELECTOR = '.activity__card';
+  const ACTIVITY_FOUND_SELECTOR = '.atividade-encontrada';
+  const unlockAudio = new Audio('resources/score-donut.mp3');
 
   const createInstance$1 = (system, componentRoot, {
     points
   }) => {
     const activityId = componentRoot.getAttribute('id');
-    const silhouette = componentRoot.querySelector(SILHOUETTE_SELECTOR);
-    silhouette.addEventListener('click', () => {
-      alert('Abra a câmera e busque no pôster!');
+    const activityFound = componentRoot.querySelector(ACTIVITY_FOUND_SELECTOR);
+    const activityCard = componentRoot.querySelector(CARD_SELECTOR);
+    activityCard.addEventListener('click', e => {
+      if (window.game.isActivityUnlocked(activityId)) {
+        open();
+      } else {
+        alert('Abra a câmera e busque no pôster!');
+      }
     });
+    activityFound.addEventListener('click', () => {
+      if (parseInt(componentRoot.getAttribute('data-game-activity-points')) > 0) {
+        playUnlockAudio();
+      }
+    });
+
+    const playUnlockAudio = () => {
+      return new Promise((resolve, reject) => {
+        if (unlockAudio.readyState >= 2) {
+          console.log('loaded');
+          unlockAudio.currentTime = 0;
+          unlockAudio.play();
+          resolve();
+        } else {
+          console.log('will load');
+          unlockAudio.addEventListener('canplay', e => {
+            unlockAudio.play();
+            resolve();
+          });
+        }
+      });
+    };
 
     const unlock = () => {
       window.game.unlockActivity(activityId);
+
+      if (parseInt(componentRoot.getAttribute('data-game-activity-points')) > 0) {
+        playUnlockAudio();
+      }
+
       open();
     };
 
@@ -2709,8 +2744,20 @@
   const COMPONENT_NAME$1 = 'game-score';
 
   const createInstance$2 = (system, componentRoot) => {
+    let CURRENT_SCORE = 0;
+
     const renderScore = () => {
+      const targetScore = window.game.computeScore();
+
+      if (targetScore > CURRENT_SCORE) {
+        componentRoot.classList.add('score-added');
+        setTimeout(() => {
+          componentRoot.classList.remove('score-added');
+        }, 3000);
+      }
+
       componentRoot.innerHTML = window.game.computeScore();
+      CURRENT_SCORE = targetScore;
     };
 
     window.game.on('game-updated', () => {
@@ -3203,6 +3250,7 @@
     constructor() {
       super();
       this.loadFromLocalStorage();
+      this.setMaxListeners(100);
       this.emit('game-updated');
     }
 
@@ -3239,6 +3287,12 @@
       return this.unlockedActivities.indexOf(activityId) !== -1;
     }
 
+    goToHome() {
+      this.activeActivity = null;
+      this.saveToLocalStorage();
+      this.emit('game-updated');
+    }
+
     loadFromLocalStorage() {
       const gameDataStr = window.localStorage.getItem('gameData');
       const storedData = gameDataStr ? JSON.parse(gameDataStr) : null;
@@ -3254,6 +3308,9 @@
       createInstance: () => {
         return {
           defaultAction: () => {},
+          goToHome: () => {
+            window.game.goToHome();
+          },
           resetGame: () => {
             window.game.resetGame();
           }

@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
       createInstance: () => {
         return {
           defaultAction: () => {},
+          goToHome: () => {
+            window.game.goToHome()
+          },
           resetGame: () => {
             window.game.resetGame()
           }

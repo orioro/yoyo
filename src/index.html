@@ -14,7 +14,11 @@
     id="game-header">
 
     <div class="content-area">
-      <a href="index.html">
+      <a
+        href="#"
+        data-component="trigger"
+        data-trigger-target="#game"
+        data-trigger-action="goToHome">
         <img src="resources/ic_arrow_back_2.png" alt="">
       </a>
 
@@ -37,17 +41,17 @@
       </p>
       <ul class="list">
         {% for activity in activities %}
-        <li>{{ activity.content | safe }}</li>
+        <li id="activity-item-container__{{ activity.id }}">{{ activity.content | safe }}</li>
         {% endfor %}
       </ul>
 
 
       <div class="desafio">
-        <p>Conquiste <strong>20</strong> donuts e libere o desafio desta edição!</p>
+        <p>Conquiste <strong>25</strong> donuts e libere o desafio desta edição!</p>
         <div class="desafio-card">
           <h1 class="text-border fg-rosa">Desafio</h1>
           <img
-            src="resources/activity-images/circo-silhueta.png">
+            src="resources/activity-images/desafio-silhueta.png">
           <div class="score-counter text-border">
             <span>?</span>
             x

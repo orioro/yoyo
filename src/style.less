@@ -130,6 +130,10 @@ audio {
   min-height: 40px;
 }
 
+iframe {
+  width: 100%;
+}
+
 ul.list {
   margin-top: 20px;
   justify-content: space-between;
@@ -157,6 +161,13 @@ ul.list {
     font-weight: 700;
     font-size: 30px;
     margin-right: 8px;
+
+    transform: rotateY(0);
+
+    &.score-added {
+      transform: rotateY(720deg);
+      transition: transform 1s ease-in-out;
+    }
   }
 
   img {
@@ -204,5 +215,20 @@ ul.list {
     .score-counter img {
       animation: none;
     }
+  }
+}
+
+//
+// Hide specific activities from listing
+//
+#activity-item-container__atividade-8,
+#activity-item-container__atividade-10,
+#activity-item-container__atividade-11,
+#activity-item-container__atividade-12,
+#activity-item-container__atividade-13 {
+  width: 0;
+
+  .activity__card {
+    display: none;
   }
 }
