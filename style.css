@@ -382,7 +382,8 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  overflow: auto;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   background-color: #D1D63E;
 }
 .activity > .activity__details > .section-1 {
