@@ -17,9 +17,20 @@ module.exports = {
   plugins: [
     resolve(),
     commonjs(),
+    // babel({
+    //   exclude: 'node_modules/**'
+    // }),
     babel({
-      exclude: 'node_modules/**'
+      presets: [
+        ['@babel/preset-env', {
+          // useBuiltIns: 'usage'
+        }]
+      ],
+      plugins: [
+        '@babel/plugin-proposal-object-rest-spread'
+      ],
     }),
+
     builtins(),
   ],
 }

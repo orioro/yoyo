@@ -4,12 +4,24 @@ const path = require('path')
 const gulp = require('gulp')
 const less = require('gulp-less')
 const nunjucks = require('gulp-nunjucks')
+const autoprefixer = require('gulp-autoprefixer')
+const uglify = require('gulp-uglify')
 const browserSync = require('browser-sync').create()
 
 const compileLess = () => {
   return gulp.src('src/style.less')
     .pipe(less())
+    .pipe(autoprefixer({
+      browsers: ['last 2 versions'],
+      cascade: false
+    }))
     .pipe(gulp.dest('dist'))
+}
+
+const minifyJs = () => {
+  return gulp.src('dist/index.bundle.js')
+    .pipe(uglify())
+    .pipe(gulp.dest('dist/index.bundle.js'))
 }
 
 const copyResources = () => {
@@ -57,3 +69,5 @@ gulp.task('develop', () => {
     return Promise.resolve()
   })
 })
+
+gulp.task('distribute', gulp.parallel(compileHtml, compileLess, copyResources, minifyJs))
