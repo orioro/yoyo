@@ -395,37 +395,12 @@ a {
   padding-bottom: 40px;
 }
 .activity > .activity__details .activity_thumb {
-  width: 60%;
+  width: 70%;
   min-width: 150px;
-  max-width: 220px;
+  max-width: 500px;
   margin: 0 auto;
   display: block;
   margin-bottom: 20px;
-}
-.activity > .activity__details .donuts-points-image {
-  height: 40px;
-  margin: 0 auto;
-  display: block;
-}
-.activity > .activity__details .donuts-points {
-  height: 40px;
-  margin: 0 auto;
-  display: block;
-  text-align: center;
-}
-.activity > .activity__details .animated-donut {
-  width: 40px;
-  animation: score 1s;
-  opacity: 1;
-}
-.activity > .activity__details .donut-1 {
-  animation-delay: 0;
-}
-.activity > .activity__details .donut-2 {
-  animation-delay: 0.5s;
-}
-.activity > .activity__details .donut-3 {
-  animation-delay: 1s;
 }
 @keyframes score {
   0% {
@@ -3598,17 +3573,9 @@ ul.list > li {
 .desafio > .desafio-card .score-counter img {
   animation: none;
 }
-#activity-item-container__atividade-8,
-#activity-item-container__atividade-10,
-#activity-item-container__atividade-11,
-#activity-item-container__atividade-12,
 #activity-item-container__atividade-13 {
   width: 0;
 }
-#activity-item-container__atividade-8 .activity__card,
-#activity-item-container__atividade-10 .activity__card,
-#activity-item-container__atividade-11 .activity__card,
-#activity-item-container__atividade-12 .activity__card,
 #activity-item-container__atividade-13 .activity__card {
   display: none;
 }
