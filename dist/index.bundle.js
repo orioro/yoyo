@@ -1,514 +1,19 @@
 (function () {
   'use strict';
 
-  function polyfill(window) {
-    const ElementPrototype = window.Element.prototype;
-
-    if (typeof ElementPrototype.matches !== 'function') {
-      ElementPrototype.matches = ElementPrototype.msMatchesSelector || ElementPrototype.mozMatchesSelector || ElementPrototype.webkitMatchesSelector || function matches(selector) {
-        let element = this;
-        const elements = (element.document || element.ownerDocument).querySelectorAll(selector);
-        let index = 0;
-
-        while (elements[index] && elements[index] !== element) {
-          ++index;
-        }
-
-        return Boolean(elements[index]);
+  function _typeof(obj) {
+    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+      _typeof = function (obj) {
+        return typeof obj;
+      };
+    } else {
+      _typeof = function (obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
       };
     }
 
-    if (typeof ElementPrototype.closest !== 'function') {
-      ElementPrototype.closest = function closest(selector) {
-        let element = this;
-
-        while (element && element.nodeType === 1) {
-          if (element.matches(selector)) {
-            return element;
-          }
-
-          element = element.parentNode;
-        }
-
-        return null;
-      };
-    }
+    return _typeof(obj);
   }
-  //# sourceMappingURL=index.mjs.map
-
-  var DOCUMENT_NODE_TYPE = 9;
-
-  /**
-   * A polyfill for Element.matches()
-   */
-  if (typeof Element !== 'undefined' && !Element.prototype.matches) {
-      var proto = Element.prototype;
-
-      proto.matches = proto.matchesSelector ||
-                      proto.mozMatchesSelector ||
-                      proto.msMatchesSelector ||
-                      proto.oMatchesSelector ||
-                      proto.webkitMatchesSelector;
-  }
-
-  /**
-   * Finds the closest parent that matches a selector.
-   *
-   * @param {Element} element
-   * @param {String} selector
-   * @return {Function}
-   */
-  function closest (element, selector) {
-      while (element && element.nodeType !== DOCUMENT_NODE_TYPE) {
-          if (typeof element.matches === 'function' &&
-              element.matches(selector)) {
-            return element;
-          }
-          element = element.parentNode;
-      }
-  }
-
-  var closest_1 = closest;
-
-  /**
-   * Delegates event to a selector.
-   *
-   * @param {Element} element
-   * @param {String} selector
-   * @param {String} type
-   * @param {Function} callback
-   * @param {Boolean} useCapture
-   * @return {Object}
-   */
-  function _delegate(element, selector, type, callback, useCapture) {
-      var listenerFn = listener.apply(this, arguments);
-
-      element.addEventListener(type, listenerFn, useCapture);
-
-      return {
-          destroy: function() {
-              element.removeEventListener(type, listenerFn, useCapture);
-          }
-      }
-  }
-
-  /**
-   * Delegates event to a selector.
-   *
-   * @param {Element|String|Array} [elements]
-   * @param {String} selector
-   * @param {String} type
-   * @param {Function} callback
-   * @param {Boolean} useCapture
-   * @return {Object}
-   */
-  function delegate(elements, selector, type, callback, useCapture) {
-      // Handle the regular Element usage
-      if (typeof elements.addEventListener === 'function') {
-          return _delegate.apply(null, arguments);
-      }
-
-      // Handle Element-less usage, it defaults to global delegation
-      if (typeof type === 'function') {
-          // Use `document` as the first parameter, then apply arguments
-          // This is a short way to .unshift `arguments` without running into deoptimizations
-          return _delegate.bind(null, document).apply(null, arguments);
-      }
-
-      // Handle Selector-based usage
-      if (typeof elements === 'string') {
-          elements = document.querySelectorAll(elements);
-      }
-
-      // Handle Array-like based usage
-      return Array.prototype.map.call(elements, function (element) {
-          return _delegate(element, selector, type, callback, useCapture);
-      });
-  }
-
-  /**
-   * Finds closest match and invokes callback.
-   *
-   * @param {Element} element
-   * @param {String} selector
-   * @param {String} type
-   * @param {Function} callback
-   * @return {Function}
-   */
-  function listener(element, selector, type, callback) {
-      return function(e) {
-          e.delegateTarget = closest_1(e.target, selector);
-
-          if (e.delegateTarget) {
-              callback.call(element, e);
-          }
-      }
-  }
-
-  var delegate_1 = delegate;
-
-  const preserveCamelCase = string => {
-  	let isLastCharLower = false;
-  	let isLastCharUpper = false;
-  	let isLastLastCharUpper = false;
-
-  	for (let i = 0; i < string.length; i++) {
-  		const character = string[i];
-
-  		if (isLastCharLower && /[a-zA-Z]/.test(character) && character.toUpperCase() === character) {
-  			string = string.slice(0, i) + '-' + string.slice(i);
-  			isLastCharLower = false;
-  			isLastLastCharUpper = isLastCharUpper;
-  			isLastCharUpper = true;
-  			i++;
-  		} else if (isLastCharUpper && isLastLastCharUpper && /[a-zA-Z]/.test(character) && character.toLowerCase() === character) {
-  			string = string.slice(0, i - 1) + '-' + string.slice(i - 1);
-  			isLastLastCharUpper = isLastCharUpper;
-  			isLastCharUpper = false;
-  			isLastCharLower = true;
-  		} else {
-  			isLastCharLower = character.toLowerCase() === character && character.toUpperCase() !== character;
-  			isLastLastCharUpper = isLastCharUpper;
-  			isLastCharUpper = character.toUpperCase() === character && character.toLowerCase() !== character;
-  		}
-  	}
-
-  	return string;
-  };
-
-  const camelCase = (input, options) => {
-  	if (!(typeof input === 'string' || Array.isArray(input))) {
-  		throw new TypeError('Expected the input to be `string | string[]`');
-  	}
-
-  	options = Object.assign({
-  		pascalCase: false
-  	}, options);
-
-  	const postProcess = x => options.pascalCase ? x.charAt(0).toUpperCase() + x.slice(1) : x;
-
-  	if (Array.isArray(input)) {
-  		input = input.map(x => x.trim())
-  			.filter(x => x.length)
-  			.join('-');
-  	} else {
-  		input = input.trim();
-  	}
-
-  	if (input.length === 0) {
-  		return '';
-  	}
-
-  	if (input.length === 1) {
-  		return options.pascalCase ? input.toUpperCase() : input.toLowerCase();
-  	}
-
-  	const hasUpperCase = input !== input.toLowerCase();
-
-  	if (hasUpperCase) {
-  		input = preserveCamelCase(input);
-  	}
-
-  	input = input
-  		.replace(/^[_.\- ]+/, '')
-  		.toLowerCase()
-  		.replace(/[_.\- ]+(\w|$)/g, (_, p1) => p1.toUpperCase())
-  		.replace(/\d+(\w|$)/g, m => m.toUpperCase());
-
-  	return postProcess(input);
-  };
-
-  var camelcase = camelCase;
-  // TODO: Remove this for the next major release
-  var default_1 = camelCase;
-  camelcase.default = default_1;
-
-  /*!
-   * dashify <https://github.com/jonschlinkert/dashify>
-   *
-   * Copyright (c) 2015-2017, Jon Schlinkert.
-   * Released under the MIT License.
-   */
-
-  var dashify = (str, options) => {
-    if (typeof str !== 'string') throw new TypeError('expected a string');
-    return str.trim()
-      .replace(/([a-z])([A-Z])/g, '$1-$2')
-      .replace(/\W/g, m => /[À-ž]/.test(m) ? m : '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/-{2,}/g, m => options && options.condense ? '-' : m)
-      .toLowerCase();
-  };
-
-  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-  function createCommonjsModule(fn, module) {
-  	return module = { exports: {} }, fn(module, module.exports), module.exports;
-  }
-
-  var animatedScrollTo = createCommonjsModule(function (module, exports) {
-  (function() {
-
-    // desiredOffset - page offset to scroll to
-    // speed - duration of the scroll per 1000px
-    function __ANIMATE_SCROLL_TO(desiredOffset) {
-      var userOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = {
-        speed: 500,
-        minDuration: 250,
-        maxDuration: 1500,
-        cancelOnUserAction: true,
-        element: window,
-        horizontal: false,
-        onComplete: undefined,
-        passive: true,
-        offset: 0
-      };
-
-      var optionsKeys = Object.keys(options);
-
-      // Override default options
-      for (var i = 0; i < optionsKeys.length; i++) {
-        var key = optionsKeys[i];
-
-        if (typeof userOptions[key] !== 'undefined') {
-          options[key] = userOptions[key];
-        }
-      }
-
-      if (!options.cancelOnUserAction && options.passive) {
-        options.passive = false;
-        if (userOptions.passive) {
-          console && console.warn(
-            'animated-scroll-to:\n "passive" was set to "false" to prevent errors, ' +
-            'as using "cancelOnUserAction: false" doesn\'t work with passive events.');
-        }
-      }
-
-      if (desiredOffset instanceof HTMLElement) {
-        if (userOptions.element && userOptions.element instanceof HTMLElement) {
-          if (options.horizontal) {
-            desiredOffset = (desiredOffset.getBoundingClientRect().left + userOptions.element.scrollLeft)
-              - userOptions.element.getBoundingClientRect().left;
-          } else {
-            desiredOffset = (desiredOffset.getBoundingClientRect().top + userOptions.element.scrollTop)
-              - userOptions.element.getBoundingClientRect().top;
-          }
-        } else if (options.horizontal) {
-          var scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-          desiredOffset = scrollLeft + desiredOffset.getBoundingClientRect().left;
-        } else {
-          var scrollTop = window.scrollY || document.documentElement.scrollTop;
-          desiredOffset = scrollTop + desiredOffset.getBoundingClientRect().top;
-        }
-      }
-
-      // Add additonal user offset
-      desiredOffset += options.offset;
-
-      options.isWindow = options.element === window;
-
-      var initialScrollPosition = null;
-      var initialAxisScollPosition = 0;
-      var maxScroll = null;
-
-      if (options.isWindow) {
-        if (options.horizontal) {
-          // get cross browser scroll positions
-          initialScrollPosition = window.scrollX || document.documentElement.scrollLeft;
-          initialAxisScollPosition = window.scrollY || document.documentElement.scrollTop;
-          // cross browser document height minus window height
-          maxScroll = Math.max(
-            document.body.scrollWidth, document.documentElement.scrollWidth,
-            document.body.offsetWidth, document.documentElement.offsetWidth,
-            document.body.clientWidth, document.documentElement.clientWidth
-          ) - window.innerWidth;
-        } else {
-          // get cross browser scroll positions
-          initialScrollPosition = window.scrollY || document.documentElement.scrollTop;
-          initialAxisScollPosition = window.scrollX || document.documentElement.scrollLeft;
-          // cross browser document width minus window width
-          maxScroll = Math.max(
-            document.body.scrollHeight, document.documentElement.scrollHeight,
-            document.body.offsetHeight, document.documentElement.offsetHeight,
-            document.body.clientHeight, document.documentElement.clientHeight
-          ) - window.innerHeight;
-        }
-      } else {
-        // DOM element
-        if (options.horizontal) {
-          initialScrollPosition = options.element.scrollLeft;
-          maxScroll = options.element.scrollWidth - options.element.clientWidth;
-        } else {
-          initialScrollPosition = options.element.scrollTop;
-          maxScroll = options.element.scrollHeight - options.element.clientHeight;
-        }
-      }
-
-      // If the scroll position is greater than maximum available scroll
-      if (desiredOffset > maxScroll) {
-        desiredOffset = maxScroll;
-      }
-
-      // Calculate diff to scroll
-      var diff = desiredOffset - initialScrollPosition;
-
-      // Do nothing if the page is already there
-      if (diff === 0) {
-        // Execute callback if there is any
-        if (options.onComplete && typeof options.onComplete === 'function') {
-          options.onComplete();
-        }
-
-        return;
-      }
-
-      // Calculate duration of the scroll
-      var duration = Math.abs(Math.round((diff / 1000) * options.speed));
-
-      // Set minimum and maximum duration
-      if (duration < options.minDuration) {
-        duration = options.minDuration;
-      } else if (duration > options.maxDuration) {
-        duration = options.maxDuration;
-      }
-
-      var startingTime = Date.now();
-
-      // Request animation frame ID
-      var requestID = null;
-
-      // Method handler
-      var handleUserEvent = null;
-      var userEventOptions = { passive: options.passive };
-
-      if (options.cancelOnUserAction) {
-        // Set handler to cancel scroll on user action
-        handleUserEvent = function() {
-          removeListeners();
-          cancelAnimationFrame(requestID);
-        };
-        window.addEventListener('keydown', handleUserEvent, userEventOptions);
-        window.addEventListener('mousedown', handleUserEvent, userEventOptions);
-      } else {
-        // Set handler to prevent user actions while scroll is active
-        handleUserEvent = function(e) { e.preventDefault(); };
-        window.addEventListener('scroll', handleUserEvent, userEventOptions);
-      }
-
-      window.addEventListener('wheel', handleUserEvent, userEventOptions);
-      window.addEventListener('touchstart', handleUserEvent, userEventOptions);
-
-      var removeListeners = function () {
-        window.removeEventListener('wheel', handleUserEvent, userEventOptions);
-        window.removeEventListener('touchstart', handleUserEvent, userEventOptions);
-
-        if (options.cancelOnUserAction) {
-          window.removeEventListener('keydown', handleUserEvent, userEventOptions);
-          window.removeEventListener('mousedown', handleUserEvent, userEventOptions);
-        } else {
-          window.removeEventListener('scroll', handleUserEvent, userEventOptions);
-        }
-      };
-
-      var step = function () {
-        var timeDiff = Date.now() - startingTime;
-        var t = (timeDiff / duration) - 1;
-        var easing = t * t * t + 1;
-        var scrollPosition = Math.round(initialScrollPosition + (diff * easing));
-
-        var doScroll = function(position) {
-          if (options.isWindow) {
-            if (options.horizontal) {
-              options.element.scrollTo(position, initialAxisScollPosition);
-            } else {
-              options.element.scrollTo(initialAxisScollPosition, position);
-            }
-          } else if (options.horizontal) {
-            options.element.scrollLeft = position;
-          } else {
-            options.element.scrollTop = position;
-          }
-        };
-
-        if (timeDiff < duration && scrollPosition !== desiredOffset) {
-          // If scroll didn't reach desired offset or time is not elapsed
-          // Scroll to a new position
-          // And request a new step
-          doScroll(scrollPosition);
-
-          requestID = requestAnimationFrame(step);
-        } else {
-          // If the time elapsed or we reached the desired offset
-          // Set scroll to the desired offset (when rounding made it to be off a pixel or two)
-          // Clear animation frame to be sure
-          doScroll(desiredOffset);
-
-          cancelAnimationFrame(requestID);
-
-          // Remove listeners
-          removeListeners();
-
-          // Animation is complete, execute callback if there is any
-          if (options.onComplete && typeof options.onComplete === 'function') {
-            options.onComplete();
-          }
-        }
-      };
-
-      // Start animating scroll
-      requestID = requestAnimationFrame(step);
-    }
-
-    {
-      if (module.exports) {
-        module.exports = __ANIMATE_SCROLL_TO;
-        exports = module.exports;
-      }
-      exports.default = __ANIMATE_SCROLL_TO;
-    }
-  }).call(commonjsGlobal);
-  });
-
-  /**
-   * https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY#Notes
-   */
-  // const SUPPORT_PAGE_OFFSET = window.pageXOffset !== undefined
-
-  var IS_CSS1_COMPAT = (document.compatMode || '') === 'CSS1Compat';
-
-  var PURE_HASH_URL_RE = /^#/;
-  var HASH_CAPTURE_RE = /#([^#]+)$/;
-  var TRAILING_SLASH_RE = /\/$/;
-  var getBaseUrl = function getBaseUrl() {
-    return window.location.origin + window.location.pathname + window.location.search;
-  };
-  var getUrlHash = function getUrlHash(url) {
-    var match = url.match(HASH_CAPTURE_RE);
-    return match ? match[1] : null;
-  };
-  var isPureHashUrl = function isPureHashUrl(url) {
-    return PURE_HASH_URL_RE.test(url);
-  };
-  var getTargetElementGivenUrl = function getTargetElementGivenUrl(targetUrl) {
-    var baseUrl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : getBaseUrl();
-
-    if (!targetUrl) {
-      throw new Error('targetUrl is required');
-    }
-
-    if (!isPureHashUrl(targetUrl) && !targetUrl.startsWith(baseUrl.replace(TRAILING_SLASH_RE, ''))) {
-      return null;
-    }
-
-    var targetId = getUrlHash(targetUrl);
-    return targetId ? document.getElementById(targetId) : null;
-  };
-
-  var attributeSelector = function attributeSelector(attributeName, attributeValue) {
-    return attributeName && attributeValue ? "[".concat(attributeName, "=\"").concat(attributeValue, "\"]") : "[".concat(attributeName, "]");
-  };
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -530,40 +35,6 @@
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
     return Constructor;
-  }
-
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
-  function _objectSpread(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] != null ? arguments[i] : {};
-      var ownKeys = Object.keys(source);
-
-      if (typeof Object.getOwnPropertySymbols === 'function') {
-        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-        }));
-      }
-
-      ownKeys.forEach(function (key) {
-        _defineProperty(target, key, source[key]);
-      });
-    }
-
-    return target;
   }
 
   function _inherits(subClass, superClass) {
@@ -633,9 +104,626 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance");
   }
 
+  function polyfill(window) {
+    var ElementPrototype = window.Element.prototype;
+
+    if (typeof ElementPrototype.matches !== 'function') {
+      ElementPrototype.matches = ElementPrototype.msMatchesSelector || ElementPrototype.mozMatchesSelector || ElementPrototype.webkitMatchesSelector || function matches(selector) {
+        var element = this;
+        var elements = (element.document || element.ownerDocument).querySelectorAll(selector);
+        var index = 0;
+
+        while (elements[index] && elements[index] !== element) {
+          ++index;
+        }
+
+        return Boolean(elements[index]);
+      };
+    }
+
+    if (typeof ElementPrototype.closest !== 'function') {
+      ElementPrototype.closest = function closest(selector) {
+        var element = this;
+
+        while (element && element.nodeType === 1) {
+          if (element.matches(selector)) {
+            return element;
+          }
+
+          element = element.parentNode;
+        }
+
+        return null;
+      };
+    }
+  }
+
+  var DOCUMENT_NODE_TYPE = 9;
+  /**
+   * A polyfill for Element.matches()
+   */
+
+  if (typeof Element !== 'undefined' && !Element.prototype.matches) {
+    var proto = Element.prototype;
+    proto.matches = proto.matchesSelector || proto.mozMatchesSelector || proto.msMatchesSelector || proto.oMatchesSelector || proto.webkitMatchesSelector;
+  }
+  /**
+   * Finds the closest parent that matches a selector.
+   *
+   * @param {Element} element
+   * @param {String} selector
+   * @return {Function}
+   */
+
+
+  function closest(element, selector) {
+    while (element && element.nodeType !== DOCUMENT_NODE_TYPE) {
+      if (typeof element.matches === 'function' && element.matches(selector)) {
+        return element;
+      }
+
+      element = element.parentNode;
+    }
+  }
+
+  var closest_1 = closest;
+
+  /**
+   * Delegates event to a selector.
+   *
+   * @param {Element} element
+   * @param {String} selector
+   * @param {String} type
+   * @param {Function} callback
+   * @param {Boolean} useCapture
+   * @return {Object}
+   */
+
+  function _delegate(element, selector, type, callback, useCapture) {
+    var listenerFn = listener.apply(this, arguments);
+    element.addEventListener(type, listenerFn, useCapture);
+    return {
+      destroy: function destroy() {
+        element.removeEventListener(type, listenerFn, useCapture);
+      }
+    };
+  }
+  /**
+   * Delegates event to a selector.
+   *
+   * @param {Element|String|Array} [elements]
+   * @param {String} selector
+   * @param {String} type
+   * @param {Function} callback
+   * @param {Boolean} useCapture
+   * @return {Object}
+   */
+
+
+  function delegate(elements, selector, type, callback, useCapture) {
+    // Handle the regular Element usage
+    if (typeof elements.addEventListener === 'function') {
+      return _delegate.apply(null, arguments);
+    } // Handle Element-less usage, it defaults to global delegation
+
+
+    if (typeof type === 'function') {
+      // Use `document` as the first parameter, then apply arguments
+      // This is a short way to .unshift `arguments` without running into deoptimizations
+      return _delegate.bind(null, document).apply(null, arguments);
+    } // Handle Selector-based usage
+
+
+    if (typeof elements === 'string') {
+      elements = document.querySelectorAll(elements);
+    } // Handle Array-like based usage
+
+
+    return Array.prototype.map.call(elements, function (element) {
+      return _delegate(element, selector, type, callback, useCapture);
+    });
+  }
+  /**
+   * Finds closest match and invokes callback.
+   *
+   * @param {Element} element
+   * @param {String} selector
+   * @param {String} type
+   * @param {Function} callback
+   * @return {Function}
+   */
+
+
+  function listener(element, selector, type, callback) {
+    return function (e) {
+      e.delegateTarget = closest_1(e.target, selector);
+
+      if (e.delegateTarget) {
+        callback.call(element, e);
+      }
+    };
+  }
+
+  var delegate_1 = delegate;
+
+  var preserveCamelCase = function preserveCamelCase(string) {
+    var isLastCharLower = false;
+    var isLastCharUpper = false;
+    var isLastLastCharUpper = false;
+
+    for (var i = 0; i < string.length; i++) {
+      var character = string[i];
+
+      if (isLastCharLower && /[a-zA-Z]/.test(character) && character.toUpperCase() === character) {
+        string = string.slice(0, i) + '-' + string.slice(i);
+        isLastCharLower = false;
+        isLastLastCharUpper = isLastCharUpper;
+        isLastCharUpper = true;
+        i++;
+      } else if (isLastCharUpper && isLastLastCharUpper && /[a-zA-Z]/.test(character) && character.toLowerCase() === character) {
+        string = string.slice(0, i - 1) + '-' + string.slice(i - 1);
+        isLastLastCharUpper = isLastCharUpper;
+        isLastCharUpper = false;
+        isLastCharLower = true;
+      } else {
+        isLastCharLower = character.toLowerCase() === character && character.toUpperCase() !== character;
+        isLastLastCharUpper = isLastCharUpper;
+        isLastCharUpper = character.toUpperCase() === character && character.toLowerCase() !== character;
+      }
+    }
+
+    return string;
+  };
+
+  var camelCase = function camelCase(input, options) {
+    if (!(typeof input === 'string' || Array.isArray(input))) {
+      throw new TypeError('Expected the input to be `string | string[]`');
+    }
+
+    options = Object.assign({
+      pascalCase: false
+    }, options);
+
+    var postProcess = function postProcess(x) {
+      return options.pascalCase ? x.charAt(0).toUpperCase() + x.slice(1) : x;
+    };
+
+    if (Array.isArray(input)) {
+      input = input.map(function (x) {
+        return x.trim();
+      }).filter(function (x) {
+        return x.length;
+      }).join('-');
+    } else {
+      input = input.trim();
+    }
+
+    if (input.length === 0) {
+      return '';
+    }
+
+    if (input.length === 1) {
+      return options.pascalCase ? input.toUpperCase() : input.toLowerCase();
+    }
+
+    var hasUpperCase = input !== input.toLowerCase();
+
+    if (hasUpperCase) {
+      input = preserveCamelCase(input);
+    }
+
+    input = input.replace(/^[_.\- ]+/, '').toLowerCase().replace(/[_.\- ]+(\w|$)/g, function (_, p1) {
+      return p1.toUpperCase();
+    }).replace(/\d+(\w|$)/g, function (m) {
+      return m.toUpperCase();
+    });
+    return postProcess(input);
+  };
+
+  var camelcase = camelCase; // TODO: Remove this for the next major release
+
+  var default_1 = camelCase;
+  camelcase["default"] = default_1;
+
+  /*!
+   * dashify <https://github.com/jonschlinkert/dashify>
+   *
+   * Copyright (c) 2015-2017, Jon Schlinkert.
+   * Released under the MIT License.
+   */
+
+  var dashify = function dashify(str, options) {
+    if (typeof str !== 'string') throw new TypeError('expected a string');
+    return str.trim().replace(/([a-z])([A-Z])/g, '$1-$2').replace(/\W/g, function (m) {
+      return /[À-ž]/.test(m) ? m : '-';
+    }).replace(/^-+|-+$/g, '').replace(/-{2,}/g, function (m) {
+      return options && options.condense ? '-' : m;
+    }).toLowerCase();
+  };
+
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+  function createCommonjsModule(fn, module) {
+  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  }
+
+  var animatedScrollTo = createCommonjsModule(function (module, exports) {
+    (function () {
+      // speed - duration of the scroll per 1000px
+
+      function __ANIMATE_SCROLL_TO(desiredOffset) {
+        var userOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var options = {
+          speed: 500,
+          minDuration: 250,
+          maxDuration: 1500,
+          cancelOnUserAction: true,
+          element: window,
+          horizontal: false,
+          onComplete: undefined,
+          passive: true,
+          offset: 0
+        };
+        var optionsKeys = Object.keys(options); // Override default options
+
+        for (var i = 0; i < optionsKeys.length; i++) {
+          var key = optionsKeys[i];
+
+          if (typeof userOptions[key] !== 'undefined') {
+            options[key] = userOptions[key];
+          }
+        }
+
+        if (!options.cancelOnUserAction && options.passive) {
+          options.passive = false;
+
+          if (userOptions.passive) {
+            console && console.warn('animated-scroll-to:\n "passive" was set to "false" to prevent errors, ' + 'as using "cancelOnUserAction: false" doesn\'t work with passive events.');
+          }
+        }
+
+        if (desiredOffset instanceof HTMLElement) {
+          if (userOptions.element && userOptions.element instanceof HTMLElement) {
+            if (options.horizontal) {
+              desiredOffset = desiredOffset.getBoundingClientRect().left + userOptions.element.scrollLeft - userOptions.element.getBoundingClientRect().left;
+            } else {
+              desiredOffset = desiredOffset.getBoundingClientRect().top + userOptions.element.scrollTop - userOptions.element.getBoundingClientRect().top;
+            }
+          } else if (options.horizontal) {
+            var scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+            desiredOffset = scrollLeft + desiredOffset.getBoundingClientRect().left;
+          } else {
+            var scrollTop = window.scrollY || document.documentElement.scrollTop;
+            desiredOffset = scrollTop + desiredOffset.getBoundingClientRect().top;
+          }
+        } // Add additonal user offset
+
+
+        desiredOffset += options.offset;
+        options.isWindow = options.element === window;
+        var initialScrollPosition = null;
+        var initialAxisScollPosition = 0;
+        var maxScroll = null;
+
+        if (options.isWindow) {
+          if (options.horizontal) {
+            // get cross browser scroll positions
+            initialScrollPosition = window.scrollX || document.documentElement.scrollLeft;
+            initialAxisScollPosition = window.scrollY || document.documentElement.scrollTop; // cross browser document height minus window height
+
+            maxScroll = Math.max(document.body.scrollWidth, document.documentElement.scrollWidth, document.body.offsetWidth, document.documentElement.offsetWidth, document.body.clientWidth, document.documentElement.clientWidth) - window.innerWidth;
+          } else {
+            // get cross browser scroll positions
+            initialScrollPosition = window.scrollY || document.documentElement.scrollTop;
+            initialAxisScollPosition = window.scrollX || document.documentElement.scrollLeft; // cross browser document width minus window width
+
+            maxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, document.body.offsetHeight, document.documentElement.offsetHeight, document.body.clientHeight, document.documentElement.clientHeight) - window.innerHeight;
+          }
+        } else {
+          // DOM element
+          if (options.horizontal) {
+            initialScrollPosition = options.element.scrollLeft;
+            maxScroll = options.element.scrollWidth - options.element.clientWidth;
+          } else {
+            initialScrollPosition = options.element.scrollTop;
+            maxScroll = options.element.scrollHeight - options.element.clientHeight;
+          }
+        } // If the scroll position is greater than maximum available scroll
+
+
+        if (desiredOffset > maxScroll) {
+          desiredOffset = maxScroll;
+        } // Calculate diff to scroll
+
+
+        var diff = desiredOffset - initialScrollPosition; // Do nothing if the page is already there
+
+        if (diff === 0) {
+          // Execute callback if there is any
+          if (options.onComplete && typeof options.onComplete === 'function') {
+            options.onComplete();
+          }
+
+          return;
+        } // Calculate duration of the scroll
+
+
+        var duration = Math.abs(Math.round(diff / 1000 * options.speed)); // Set minimum and maximum duration
+
+        if (duration < options.minDuration) {
+          duration = options.minDuration;
+        } else if (duration > options.maxDuration) {
+          duration = options.maxDuration;
+        }
+
+        var startingTime = Date.now(); // Request animation frame ID
+
+        var requestID = null; // Method handler
+
+        var handleUserEvent = null;
+        var userEventOptions = {
+          passive: options.passive
+        };
+
+        if (options.cancelOnUserAction) {
+          // Set handler to cancel scroll on user action
+          handleUserEvent = function handleUserEvent() {
+            removeListeners();
+            cancelAnimationFrame(requestID);
+          };
+
+          window.addEventListener('keydown', handleUserEvent, userEventOptions);
+          window.addEventListener('mousedown', handleUserEvent, userEventOptions);
+        } else {
+          // Set handler to prevent user actions while scroll is active
+          handleUserEvent = function handleUserEvent(e) {
+            e.preventDefault();
+          };
+
+          window.addEventListener('scroll', handleUserEvent, userEventOptions);
+        }
+
+        window.addEventListener('wheel', handleUserEvent, userEventOptions);
+        window.addEventListener('touchstart', handleUserEvent, userEventOptions);
+
+        var removeListeners = function removeListeners() {
+          window.removeEventListener('wheel', handleUserEvent, userEventOptions);
+          window.removeEventListener('touchstart', handleUserEvent, userEventOptions);
+
+          if (options.cancelOnUserAction) {
+            window.removeEventListener('keydown', handleUserEvent, userEventOptions);
+            window.removeEventListener('mousedown', handleUserEvent, userEventOptions);
+          } else {
+            window.removeEventListener('scroll', handleUserEvent, userEventOptions);
+          }
+        };
+
+        var step = function step() {
+          var timeDiff = Date.now() - startingTime;
+          var t = timeDiff / duration - 1;
+          var easing = t * t * t + 1;
+          var scrollPosition = Math.round(initialScrollPosition + diff * easing);
+
+          var doScroll = function doScroll(position) {
+            if (options.isWindow) {
+              if (options.horizontal) {
+                options.element.scrollTo(position, initialAxisScollPosition);
+              } else {
+                options.element.scrollTo(initialAxisScollPosition, position);
+              }
+            } else if (options.horizontal) {
+              options.element.scrollLeft = position;
+            } else {
+              options.element.scrollTop = position;
+            }
+          };
+
+          if (timeDiff < duration && scrollPosition !== desiredOffset) {
+            // If scroll didn't reach desired offset or time is not elapsed
+            // Scroll to a new position
+            // And request a new step
+            doScroll(scrollPosition);
+            requestID = requestAnimationFrame(step);
+          } else {
+            // If the time elapsed or we reached the desired offset
+            // Set scroll to the desired offset (when rounding made it to be off a pixel or two)
+            // Clear animation frame to be sure
+            doScroll(desiredOffset);
+            cancelAnimationFrame(requestID); // Remove listeners
+
+            removeListeners(); // Animation is complete, execute callback if there is any
+
+            if (options.onComplete && typeof options.onComplete === 'function') {
+              options.onComplete();
+            }
+          }
+        }; // Start animating scroll
+
+
+        requestID = requestAnimationFrame(step);
+      }
+
+      {
+        if (module.exports) {
+          module.exports = __ANIMATE_SCROLL_TO;
+          exports = module.exports;
+        }
+
+        exports["default"] = __ANIMATE_SCROLL_TO;
+      }
+    }).call(commonjsGlobal);
+  });
+
+  /**
+   * https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY#Notes
+   */
+  // const SUPPORT_PAGE_OFFSET = window.pageXOffset !== undefined
+
+  var IS_CSS1_COMPAT = (document.compatMode || '') === 'CSS1Compat';
+  var PURE_HASH_URL_RE = /^#/;
+  var HASH_CAPTURE_RE = /#([^#]+)$/;
+  var TRAILING_SLASH_RE = /\/$/;
+
+  var getBaseUrl = function getBaseUrl() {
+    return window.location.origin + window.location.pathname + window.location.search;
+  };
+
+  var getUrlHash = function getUrlHash(url) {
+    var match = url.match(HASH_CAPTURE_RE);
+    return match ? match[1] : null;
+  };
+
+  var isPureHashUrl = function isPureHashUrl(url) {
+    return PURE_HASH_URL_RE.test(url);
+  };
+
+  var getTargetElementGivenUrl = function getTargetElementGivenUrl(targetUrl) {
+    var baseUrl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : getBaseUrl();
+
+    if (!targetUrl) {
+      throw new Error('targetUrl is required');
+    }
+
+    if (!isPureHashUrl(targetUrl) && !targetUrl.startsWith(baseUrl.replace(TRAILING_SLASH_RE, ''))) {
+      return null;
+    }
+
+    var targetId = getUrlHash(targetUrl);
+    return targetId ? document.getElementById(targetId) : null;
+  };
+
+  var attributeSelector = function attributeSelector(attributeName, attributeValue) {
+    return attributeName && attributeValue ? "[".concat(attributeName, "=\"").concat(attributeValue, "\"]") : "[".concat(attributeName, "]");
+  };
+
+  function _classCallCheck$1(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _defineProperties$1(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass$1(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$1(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$1(Constructor, staticProps);
+    return Constructor;
+  }
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+      var ownKeys = Object.keys(source);
+
+      if (typeof Object.getOwnPropertySymbols === 'function') {
+        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+        }));
+      }
+
+      ownKeys.forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    }
+
+    return target;
+  }
+
+  function _inherits$1(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function");
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) _setPrototypeOf$1(subClass, superClass);
+  }
+
+  function _getPrototypeOf$1(o) {
+    _getPrototypeOf$1 = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf$1(o);
+  }
+
+  function _setPrototypeOf$1(o, p) {
+    _setPrototypeOf$1 = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
+
+    return _setPrototypeOf$1(o, p);
+  }
+
+  function _assertThisInitialized$1(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return self;
+  }
+
+  function _possibleConstructorReturn$1(self, call) {
+    if (call && (_typeof(call) === "object" || typeof call === "function")) {
+      return call;
+    }
+
+    return _assertThisInitialized$1(self);
+  }
+
+  function _toConsumableArray$1(arr) {
+    return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _nonIterableSpread$1();
+  }
+
+  function _arrayWithoutHoles$1(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    }
+  }
+
+  function _iterableToArray$1(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  function _nonIterableSpread$1() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
   /**
    * Element#closest
    */
+
 
   polyfill(window);
   /**
@@ -669,34 +757,32 @@
     });
   })([Element.prototype, CharacterData.prototype, DocumentType.prototype]);
 
-  var domain;
-
-  // This constructor is used to store event handlers. Instantiating this is
+  var domain; // This constructor is used to store event handlers. Instantiating this is
   // faster than explicitly calling `Object.create(null)` to get a "clean" empty
   // object (tested with v8 v4.9).
+
   function EventHandlers() {}
+
   EventHandlers.prototype = Object.create(null);
 
   function EventEmitter() {
     EventEmitter.init.call(this);
-  }
-
-  // nodejs oddity
+  } // nodejs oddity
   // require('events') === require('events').EventEmitter
+
+
   EventEmitter.EventEmitter = EventEmitter;
-
   EventEmitter.usingDomains = false;
-
   EventEmitter.prototype.domain = undefined;
   EventEmitter.prototype._events = undefined;
-  EventEmitter.prototype._maxListeners = undefined;
-
-  // By default EventEmitters will print a warning if more than 10 listeners are
+  EventEmitter.prototype._maxListeners = undefined; // By default EventEmitters will print a warning if more than 10 listeners are
   // added to it. This is a useful default which helps finding memory leaks.
+
   EventEmitter.defaultMaxListeners = 10;
 
-  EventEmitter.init = function() {
+  EventEmitter.init = function () {
     this.domain = null;
+
     if (EventEmitter.usingDomains) {
       // if there is an active domain, then attach to it.
       if (domain.active && !(this instanceof domain.Domain)) ;
@@ -708,102 +794,97 @@
     }
 
     this._maxListeners = this._maxListeners || undefined;
-  };
-
-  // Obviously not all Emitters should be limited to 10. This function allows
+  }; // Obviously not all Emitters should be limited to 10. This function allows
   // that to be increased. Set to zero for unlimited.
+
+
   EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
-    if (typeof n !== 'number' || n < 0 || isNaN(n))
-      throw new TypeError('"n" argument must be a positive number');
+    if (typeof n !== 'number' || n < 0 || isNaN(n)) throw new TypeError('"n" argument must be a positive number');
     this._maxListeners = n;
     return this;
   };
 
   function $getMaxListeners(that) {
-    if (that._maxListeners === undefined)
-      return EventEmitter.defaultMaxListeners;
+    if (that._maxListeners === undefined) return EventEmitter.defaultMaxListeners;
     return that._maxListeners;
   }
 
   EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
     return $getMaxListeners(this);
-  };
-
-  // These standalone emit* functions are used to optimize calling of event
+  }; // These standalone emit* functions are used to optimize calling of event
   // handlers for fast cases because emit() itself often has a variable number of
   // arguments and can be deoptimized because of that. These functions always have
   // the same number of arguments and thus do not get deoptimized, so the code
   // inside them can execute faster.
+
+
   function emitNone(handler, isFn, self) {
-    if (isFn)
-      handler.call(self);
-    else {
+    if (isFn) handler.call(self);else {
       var len = handler.length;
       var listeners = arrayClone(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self);
+      }
     }
   }
+
   function emitOne(handler, isFn, self, arg1) {
-    if (isFn)
-      handler.call(self, arg1);
-    else {
+    if (isFn) handler.call(self, arg1);else {
       var len = handler.length;
       var listeners = arrayClone(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self, arg1);
+      }
     }
   }
+
   function emitTwo(handler, isFn, self, arg1, arg2) {
-    if (isFn)
-      handler.call(self, arg1, arg2);
-    else {
+    if (isFn) handler.call(self, arg1, arg2);else {
       var len = handler.length;
       var listeners = arrayClone(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self, arg1, arg2);
+      }
     }
   }
+
   function emitThree(handler, isFn, self, arg1, arg2, arg3) {
-    if (isFn)
-      handler.call(self, arg1, arg2, arg3);
-    else {
+    if (isFn) handler.call(self, arg1, arg2, arg3);else {
       var len = handler.length;
       var listeners = arrayClone(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self, arg1, arg2, arg3);
+      }
     }
   }
 
   function emitMany(handler, isFn, self, args) {
-    if (isFn)
-      handler.apply(self, args);
-    else {
+    if (isFn) handler.apply(self, args);else {
       var len = handler.length;
       var listeners = arrayClone(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].apply(self, args);
+      }
     }
   }
 
   EventEmitter.prototype.emit = function emit(type) {
     var er, handler, len, args, i, events, domain;
-    var doError = (type === 'error');
-
+    var doError = type === 'error';
     events = this._events;
-    if (events)
-      doError = (doError && events.error == null);
-    else if (!doError)
-      return false;
+    if (events) doError = doError && events.error == null;else if (!doError) return false;
+    domain = this.domain; // If there is no 'error' event listener then throw.
 
-    domain = this.domain;
-
-    // If there is no 'error' event listener then throw.
     if (doError) {
       er = arguments[1];
+
       if (domain) {
-        if (!er)
-          er = new Error('Uncaught, unspecified "error" event');
+        if (!er) er = new Error('Uncaught, unspecified "error" event');
         er.domainEmitter = this;
         er.domain = domain;
         er.domainThrown = false;
@@ -816,35 +897,41 @@
         err.context = er;
         throw err;
       }
+
       return false;
     }
 
     handler = events[type];
-
-    if (!handler)
-      return false;
-
+    if (!handler) return false;
     var isFn = typeof handler === 'function';
     len = arguments.length;
+
     switch (len) {
       // fast cases
       case 1:
         emitNone(handler, isFn, this);
         break;
+
       case 2:
         emitOne(handler, isFn, this, arguments[1]);
         break;
+
       case 3:
         emitTwo(handler, isFn, this, arguments[1], arguments[2]);
         break;
+
       case 4:
         emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
         break;
       // slower
+
       default:
         args = new Array(len - 1);
-        for (i = 1; i < len; i++)
+
+        for (i = 1; i < len; i++) {
           args[i - 1] = arguments[i];
+        }
+
         emitMany(handler, isFn, this, args);
     }
 
@@ -855,11 +942,9 @@
     var m;
     var events;
     var existing;
-
-    if (typeof listener !== 'function')
-      throw new TypeError('"listener" argument must be a function');
-
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
     events = target._events;
+
     if (!events) {
       events = target._events = new EventHandlers();
       target._eventsCount = 0;
@@ -867,13 +952,12 @@
       // To avoid recursion in the case that type === "newListener"! Before
       // adding it to the listeners, first emit "newListener".
       if (events.newListener) {
-        target.emit('newListener', type,
-                    listener.listener ? listener.listener : listener);
-
-        // Re-assign `events` because a newListener handler could have caused the
+        target.emit('newListener', type, listener.listener ? listener.listener : listener); // Re-assign `events` because a newListener handler could have caused the
         // this._events to be assigned to a new object
+
         events = target._events;
       }
+
       existing = events[type];
     }
 
@@ -884,8 +968,7 @@
     } else {
       if (typeof existing === 'function') {
         // Adding the second element, need to change to array.
-        existing = events[type] = prepend ? [listener, existing] :
-                                            [existing, listener];
+        existing = events[type] = prepend ? [listener, existing] : [existing, listener];
       } else {
         // If we've already got an array, just append.
         if (prepend) {
@@ -893,16 +976,15 @@
         } else {
           existing.push(listener);
         }
-      }
+      } // Check for listener leak
 
-      // Check for listener leak
+
       if (!existing.warned) {
         m = $getMaxListeners(target);
+
         if (m && m > 0 && existing.length > m) {
           existing.warned = true;
-          var w = new Error('Possible EventEmitter memory leak detected. ' +
-                              existing.length + ' ' + type + ' listeners added. ' +
-                              'Use emitter.setMaxListeners() to increase limit');
+          var w = new Error('Possible EventEmitter memory leak detected. ' + existing.length + ' ' + type + ' listeners added. ' + 'Use emitter.setMaxListeners() to increase limit');
           w.name = 'MaxListenersExceededWarning';
           w.emitter = target;
           w.type = type;
@@ -914,177 +996,153 @@
 
     return target;
   }
+
   function emitWarning(e) {
     typeof console.warn === 'function' ? console.warn(e) : console.log(e);
   }
+
   EventEmitter.prototype.addListener = function addListener(type, listener) {
     return _addListener(this, type, listener, false);
   };
 
   EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
-  EventEmitter.prototype.prependListener =
-      function prependListener(type, listener) {
-        return _addListener(this, type, listener, true);
-      };
+  EventEmitter.prototype.prependListener = function prependListener(type, listener) {
+    return _addListener(this, type, listener, true);
+  };
 
   function _onceWrap(target, type, listener) {
     var fired = false;
+
     function g() {
       target.removeListener(type, g);
+
       if (!fired) {
         fired = true;
         listener.apply(target, arguments);
       }
     }
+
     g.listener = listener;
     return g;
   }
 
   EventEmitter.prototype.once = function once(type, listener) {
-    if (typeof listener !== 'function')
-      throw new TypeError('"listener" argument must be a function');
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
     this.on(type, _onceWrap(this, type, listener));
     return this;
   };
 
-  EventEmitter.prototype.prependOnceListener =
-      function prependOnceListener(type, listener) {
-        if (typeof listener !== 'function')
-          throw new TypeError('"listener" argument must be a function');
-        this.prependListener(type, _onceWrap(this, type, listener));
-        return this;
-      };
+  EventEmitter.prototype.prependOnceListener = function prependOnceListener(type, listener) {
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+    this.prependListener(type, _onceWrap(this, type, listener));
+    return this;
+  }; // emits a 'removeListener' event iff the listener was removed
 
-  // emits a 'removeListener' event iff the listener was removed
-  EventEmitter.prototype.removeListener =
-      function removeListener(type, listener) {
-        var list, events, position, i, originalListener;
 
-        if (typeof listener !== 'function')
-          throw new TypeError('"listener" argument must be a function');
+  EventEmitter.prototype.removeListener = function removeListener(type, listener) {
+    var list, events, position, i, originalListener;
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+    events = this._events;
+    if (!events) return this;
+    list = events[type];
+    if (!list) return this;
 
-        events = this._events;
-        if (!events)
-          return this;
+    if (list === listener || list.listener && list.listener === listener) {
+      if (--this._eventsCount === 0) this._events = new EventHandlers();else {
+        delete events[type];
+        if (events.removeListener) this.emit('removeListener', type, list.listener || listener);
+      }
+    } else if (typeof list !== 'function') {
+      position = -1;
 
-        list = events[type];
-        if (!list)
-          return this;
-
-        if (list === listener || (list.listener && list.listener === listener)) {
-          if (--this._eventsCount === 0)
-            this._events = new EventHandlers();
-          else {
-            delete events[type];
-            if (events.removeListener)
-              this.emit('removeListener', type, list.listener || listener);
-          }
-        } else if (typeof list !== 'function') {
-          position = -1;
-
-          for (i = list.length; i-- > 0;) {
-            if (list[i] === listener ||
-                (list[i].listener && list[i].listener === listener)) {
-              originalListener = list[i].listener;
-              position = i;
-              break;
-            }
-          }
-
-          if (position < 0)
-            return this;
-
-          if (list.length === 1) {
-            list[0] = undefined;
-            if (--this._eventsCount === 0) {
-              this._events = new EventHandlers();
-              return this;
-            } else {
-              delete events[type];
-            }
-          } else {
-            spliceOne(list, position);
-          }
-
-          if (events.removeListener)
-            this.emit('removeListener', type, originalListener || listener);
+      for (i = list.length; i-- > 0;) {
+        if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+          originalListener = list[i].listener;
+          position = i;
+          break;
         }
+      }
 
-        return this;
-      };
+      if (position < 0) return this;
 
-  EventEmitter.prototype.removeAllListeners =
-      function removeAllListeners(type) {
-        var listeners, events;
+      if (list.length === 1) {
+        list[0] = undefined;
 
-        events = this._events;
-        if (!events)
-          return this;
-
-        // not listening for removeListener, no need to emit
-        if (!events.removeListener) {
-          if (arguments.length === 0) {
-            this._events = new EventHandlers();
-            this._eventsCount = 0;
-          } else if (events[type]) {
-            if (--this._eventsCount === 0)
-              this._events = new EventHandlers();
-            else
-              delete events[type];
-          }
-          return this;
-        }
-
-        // emit removeListener for all listeners on all events
-        if (arguments.length === 0) {
-          var keys = Object.keys(events);
-          for (var i = 0, key; i < keys.length; ++i) {
-            key = keys[i];
-            if (key === 'removeListener') continue;
-            this.removeAllListeners(key);
-          }
-          this.removeAllListeners('removeListener');
+        if (--this._eventsCount === 0) {
           this._events = new EventHandlers();
-          this._eventsCount = 0;
           return this;
+        } else {
+          delete events[type];
         }
+      } else {
+        spliceOne(list, position);
+      }
 
-        listeners = events[type];
+      if (events.removeListener) this.emit('removeListener', type, originalListener || listener);
+    }
 
-        if (typeof listeners === 'function') {
-          this.removeListener(type, listeners);
-        } else if (listeners) {
-          // LIFO order
-          do {
-            this.removeListener(type, listeners[listeners.length - 1]);
-          } while (listeners[0]);
-        }
+    return this;
+  };
 
-        return this;
-      };
+  EventEmitter.prototype.removeAllListeners = function removeAllListeners(type) {
+    var listeners, events;
+    events = this._events;
+    if (!events) return this; // not listening for removeListener, no need to emit
+
+    if (!events.removeListener) {
+      if (arguments.length === 0) {
+        this._events = new EventHandlers();
+        this._eventsCount = 0;
+      } else if (events[type]) {
+        if (--this._eventsCount === 0) this._events = new EventHandlers();else delete events[type];
+      }
+
+      return this;
+    } // emit removeListener for all listeners on all events
+
+
+    if (arguments.length === 0) {
+      var keys = Object.keys(events);
+
+      for (var i = 0, key; i < keys.length; ++i) {
+        key = keys[i];
+        if (key === 'removeListener') continue;
+        this.removeAllListeners(key);
+      }
+
+      this.removeAllListeners('removeListener');
+      this._events = new EventHandlers();
+      this._eventsCount = 0;
+      return this;
+    }
+
+    listeners = events[type];
+
+    if (typeof listeners === 'function') {
+      this.removeListener(type, listeners);
+    } else if (listeners) {
+      // LIFO order
+      do {
+        this.removeListener(type, listeners[listeners.length - 1]);
+      } while (listeners[0]);
+    }
+
+    return this;
+  };
 
   EventEmitter.prototype.listeners = function listeners(type) {
     var evlistener;
     var ret;
     var events = this._events;
-
-    if (!events)
-      ret = [];
-    else {
+    if (!events) ret = [];else {
       evlistener = events[type];
-      if (!evlistener)
-        ret = [];
-      else if (typeof evlistener === 'function')
-        ret = [evlistener.listener || evlistener];
-      else
-        ret = unwrapListeners(evlistener);
+      if (!evlistener) ret = [];else if (typeof evlistener === 'function') ret = [evlistener.listener || evlistener];else ret = unwrapListeners(evlistener);
     }
-
     return ret;
   };
 
-  EventEmitter.listenerCount = function(emitter, type) {
+  EventEmitter.listenerCount = function (emitter, type) {
     if (typeof emitter.listenerCount === 'function') {
       return emitter.listenerCount(type);
     } else {
@@ -1093,6 +1151,7 @@
   };
 
   EventEmitter.prototype.listenerCount = listenerCount;
+
   function listenerCount(type) {
     var events = this._events;
 
@@ -1111,33 +1170,40 @@
 
   EventEmitter.prototype.eventNames = function eventNames() {
     return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
-  };
+  }; // About 1.5x faster than the two-arg version of Array#splice().
 
-  // About 1.5x faster than the two-arg version of Array#splice().
+
   function spliceOne(list, index) {
-    for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) {
       list[i] = list[k];
+    }
+
     list.pop();
   }
 
   function arrayClone(arr, i) {
     var copy = new Array(i);
-    while (i--)
+
+    while (i--) {
       copy[i] = arr[i];
+    }
+
     return copy;
   }
 
   function unwrapListeners(arr) {
     var ret = new Array(arr.length);
+
     for (var i = 0; i < ret.length; ++i) {
       ret[i] = arr[i].listener || arr[i];
     }
+
     return ret;
   }
-
   /**
    * Initializes hash navigation tracking
    */
+
 
   var initializeHashNavigationTracking = function initializeHashNavigationTracking(system, rootElement) {
     delegate_1(rootElement, 'a', 'click', function (e) {
@@ -1155,39 +1221,157 @@
     system.navHandleNavigation(window.location.href);
   };
 
-  var global$1 = (typeof global !== "undefined" ? global :
-              typeof self !== "undefined" ? self :
-              typeof window !== "undefined" ? window : {});
+  var global$1 = typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {}; // shim for using process in browser
+
   if (typeof global$1.setTimeout === 'function') ;
+
   if (typeof global$1.clearTimeout === 'function') ;
 
-  // from https://github.com/kumavis/browser-process-hrtime/blob/master/index.js
-  var performance = global$1.performance || {};
-  var performanceNow =
-    performance.now        ||
-    performance.mozNow     ||
-    performance.msNow      ||
-    performance.oNow       ||
-    performance.webkitNow  ||
-    function(){ return (new Date()).getTime() };
 
-  function unwrapExports (x) {
-  	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+  var performance = global$1.performance || {};
+
+  var performanceNow = performance.now || performance.mozNow || performance.msNow || performance.oNow || performance.webkitNow || function () {
+    return new Date().getTime();
+  }; // generate timestamp or delta
+
+  function unwrapExports(x) {
+    return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
   }
 
   function createCommonjsModule$1(fn, module) {
-  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+    return module = {
+      exports: {}
+    }, fn(module, module.exports), module.exports;
   }
 
   var reactIs_production_min = createCommonjsModule$1(function (module, exports) {
-  Object.defineProperty(exports,"__esModule",{value:!0});
-  var b="function"===typeof Symbol&&Symbol.for,c=b?Symbol.for("react.element"):60103,d=b?Symbol.for("react.portal"):60106,e=b?Symbol.for("react.fragment"):60107,f=b?Symbol.for("react.strict_mode"):60108,g=b?Symbol.for("react.profiler"):60114,h=b?Symbol.for("react.provider"):60109,k=b?Symbol.for("react.context"):60110,l=b?Symbol.for("react.async_mode"):60111,m=b?Symbol.for("react.concurrent_mode"):60111,n=b?Symbol.for("react.forward_ref"):60112,p=b?Symbol.for("react.suspense"):60113,q=b?Symbol.for("react.memo"):
-  60115,r=b?Symbol.for("react.lazy"):60116;function t(a){if("object"===typeof a&&null!==a){var u=a.$$typeof;switch(u){case c:switch(a=a.type,a){case l:case m:case e:case g:case f:case p:return a;default:switch(a=a&&a.$$typeof,a){case k:case n:case h:return a;default:return u}}case r:case q:case d:return u}}}function v(a){return t(a)===m}exports.typeOf=t;exports.AsyncMode=l;exports.ConcurrentMode=m;exports.ContextConsumer=k;exports.ContextProvider=h;exports.Element=c;exports.ForwardRef=n;
-  exports.Fragment=e;exports.Lazy=r;exports.Memo=q;exports.Portal=d;exports.Profiler=g;exports.StrictMode=f;exports.Suspense=p;exports.isValidElementType=function(a){return "string"===typeof a||"function"===typeof a||a===e||a===m||a===g||a===f||a===p||"object"===typeof a&&null!==a&&(a.$$typeof===r||a.$$typeof===q||a.$$typeof===h||a.$$typeof===k||a.$$typeof===n)};exports.isAsyncMode=function(a){return v(a)||t(a)===l};exports.isConcurrentMode=v;exports.isContextConsumer=function(a){return t(a)===k};
-  exports.isContextProvider=function(a){return t(a)===h};exports.isElement=function(a){return "object"===typeof a&&null!==a&&a.$$typeof===c};exports.isForwardRef=function(a){return t(a)===n};exports.isFragment=function(a){return t(a)===e};exports.isLazy=function(a){return t(a)===r};exports.isMemo=function(a){return t(a)===q};exports.isPortal=function(a){return t(a)===d};exports.isProfiler=function(a){return t(a)===g};exports.isStrictMode=function(a){return t(a)===f};
-  exports.isSuspense=function(a){return t(a)===p};
-  });
+    Object.defineProperty(exports, "__esModule", {
+      value: !0
+    });
+    var b = "function" === typeof Symbol && Symbol["for"],
+        c = b ? Symbol["for"]("react.element") : 60103,
+        d = b ? Symbol["for"]("react.portal") : 60106,
+        e = b ? Symbol["for"]("react.fragment") : 60107,
+        f = b ? Symbol["for"]("react.strict_mode") : 60108,
+        g = b ? Symbol["for"]("react.profiler") : 60114,
+        h = b ? Symbol["for"]("react.provider") : 60109,
+        k = b ? Symbol["for"]("react.context") : 60110,
+        l = b ? Symbol["for"]("react.async_mode") : 60111,
+        m = b ? Symbol["for"]("react.concurrent_mode") : 60111,
+        n = b ? Symbol["for"]("react.forward_ref") : 60112,
+        p = b ? Symbol["for"]("react.suspense") : 60113,
+        q = b ? Symbol["for"]("react.memo") : 60115,
+        r = b ? Symbol["for"]("react.lazy") : 60116;
 
+    function t(a) {
+      if ("object" === _typeof(a) && null !== a) {
+        var u = a.$$typeof;
+
+        switch (u) {
+          case c:
+            switch (a = a.type, a) {
+              case l:
+              case m:
+              case e:
+              case g:
+              case f:
+              case p:
+                return a;
+
+              default:
+                switch (a = a && a.$$typeof, a) {
+                  case k:
+                  case n:
+                  case h:
+                    return a;
+
+                  default:
+                    return u;
+                }
+
+            }
+
+          case r:
+          case q:
+          case d:
+            return u;
+        }
+      }
+    }
+
+    function v(a) {
+      return t(a) === m;
+    }
+
+    exports.typeOf = t;
+    exports.AsyncMode = l;
+    exports.ConcurrentMode = m;
+    exports.ContextConsumer = k;
+    exports.ContextProvider = h;
+    exports.Element = c;
+    exports.ForwardRef = n;
+    exports.Fragment = e;
+    exports.Lazy = r;
+    exports.Memo = q;
+    exports.Portal = d;
+    exports.Profiler = g;
+    exports.StrictMode = f;
+    exports.Suspense = p;
+
+    exports.isValidElementType = function (a) {
+      return "string" === typeof a || "function" === typeof a || a === e || a === m || a === g || a === f || a === p || "object" === _typeof(a) && null !== a && (a.$$typeof === r || a.$$typeof === q || a.$$typeof === h || a.$$typeof === k || a.$$typeof === n);
+    };
+
+    exports.isAsyncMode = function (a) {
+      return v(a) || t(a) === l;
+    };
+
+    exports.isConcurrentMode = v;
+
+    exports.isContextConsumer = function (a) {
+      return t(a) === k;
+    };
+
+    exports.isContextProvider = function (a) {
+      return t(a) === h;
+    };
+
+    exports.isElement = function (a) {
+      return "object" === _typeof(a) && null !== a && a.$$typeof === c;
+    };
+
+    exports.isForwardRef = function (a) {
+      return t(a) === n;
+    };
+
+    exports.isFragment = function (a) {
+      return t(a) === e;
+    };
+
+    exports.isLazy = function (a) {
+      return t(a) === r;
+    };
+
+    exports.isMemo = function (a) {
+      return t(a) === q;
+    };
+
+    exports.isPortal = function (a) {
+      return t(a) === d;
+    };
+
+    exports.isProfiler = function (a) {
+      return t(a) === g;
+    };
+
+    exports.isStrictMode = function (a) {
+      return t(a) === f;
+    };
+
+    exports.isSuspense = function (a) {
+      return t(a) === p;
+    };
+  });
   unwrapExports(reactIs_production_min);
   var reactIs_production_min_1 = reactIs_production_min.typeOf;
   var reactIs_production_min_2 = reactIs_production_min.AsyncMode;
@@ -1217,226 +1401,236 @@
   var reactIs_production_min_26 = reactIs_production_min.isProfiler;
   var reactIs_production_min_27 = reactIs_production_min.isStrictMode;
   var reactIs_production_min_28 = reactIs_production_min.isSuspense;
-
   var reactIs_development = createCommonjsModule$1(function (module, exports) {
+    {
+      (function () {
+        Object.defineProperty(exports, '__esModule', {
+          value: true
+        }); // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
+        // nor polyfill, then a plain number is used for performance.
+
+        var hasSymbol = typeof Symbol === 'function' && Symbol["for"];
+        var REACT_ELEMENT_TYPE = hasSymbol ? Symbol["for"]('react.element') : 0xeac7;
+        var REACT_PORTAL_TYPE = hasSymbol ? Symbol["for"]('react.portal') : 0xeaca;
+        var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol["for"]('react.fragment') : 0xeacb;
+        var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol["for"]('react.strict_mode') : 0xeacc;
+        var REACT_PROFILER_TYPE = hasSymbol ? Symbol["for"]('react.profiler') : 0xead2;
+        var REACT_PROVIDER_TYPE = hasSymbol ? Symbol["for"]('react.provider') : 0xeacd;
+        var REACT_CONTEXT_TYPE = hasSymbol ? Symbol["for"]('react.context') : 0xeace;
+        var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol["for"]('react.async_mode') : 0xeacf;
+        var REACT_CONCURRENT_MODE_TYPE = hasSymbol ? Symbol["for"]('react.concurrent_mode') : 0xeacf;
+        var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol["for"]('react.forward_ref') : 0xead0;
+        var REACT_SUSPENSE_TYPE = hasSymbol ? Symbol["for"]('react.suspense') : 0xead1;
+        var REACT_MEMO_TYPE = hasSymbol ? Symbol["for"]('react.memo') : 0xead3;
+        var REACT_LAZY_TYPE = hasSymbol ? Symbol["for"]('react.lazy') : 0xead4;
+
+        function isValidElementType(type) {
+          return typeof type === 'string' || typeof type === 'function' || // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
+          type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || _typeof(type) === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE);
+        }
+        /**
+         * Forked from fbjs/warning:
+         * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
+         *
+         * Only change is we use console.warn instead of console.error,
+         * and do nothing when 'console' is not supported.
+         * This really simplifies the code.
+         * ---
+         * Similar to invariant but only logs a warning if the condition is not met.
+         * This can be used to log issues in development environments in critical
+         * paths. Removing the logging code for production environments will keep the
+         * same logic and follow the same code paths.
+         */
 
 
+        var lowPriorityWarning = function lowPriorityWarning() {};
 
-  {
-    (function() {
+        {
+          var printWarning = function printWarning(format) {
+            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+              args[_key - 1] = arguments[_key];
+            }
 
-  Object.defineProperty(exports, '__esModule', { value: true });
+            var argIndex = 0;
+            var message = 'Warning: ' + format.replace(/%s/g, function () {
+              return args[argIndex++];
+            });
 
-  // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
-  // nor polyfill, then a plain number is used for performance.
-  var hasSymbol = typeof Symbol === 'function' && Symbol.for;
+            if (typeof console !== 'undefined') {
+              console.warn(message);
+            }
 
-  var REACT_ELEMENT_TYPE = hasSymbol ? Symbol.for('react.element') : 0xeac7;
-  var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
-  var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
-  var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
-  var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profiler') : 0xead2;
-  var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
-  var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace;
-  var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
-  var REACT_CONCURRENT_MODE_TYPE = hasSymbol ? Symbol.for('react.concurrent_mode') : 0xeacf;
-  var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
-  var REACT_SUSPENSE_TYPE = hasSymbol ? Symbol.for('react.suspense') : 0xead1;
-  var REACT_MEMO_TYPE = hasSymbol ? Symbol.for('react.memo') : 0xead3;
-  var REACT_LAZY_TYPE = hasSymbol ? Symbol.for('react.lazy') : 0xead4;
+            try {
+              // --- Welcome to debugging React ---
+              // This error was thrown as a convenience so that you can use this stack
+              // to find the callsite that caused this warning to fire.
+              throw new Error(message);
+            } catch (x) {}
+          };
 
-  function isValidElementType(type) {
-    return typeof type === 'string' || typeof type === 'function' ||
-    // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
-    type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE);
-  }
+          lowPriorityWarning = function lowPriorityWarning(condition, format) {
+            if (format === undefined) {
+              throw new Error('`lowPriorityWarning(condition, format, ...args)` requires a warning ' + 'message argument');
+            }
 
-  /**
-   * Forked from fbjs/warning:
-   * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
-   *
-   * Only change is we use console.warn instead of console.error,
-   * and do nothing when 'console' is not supported.
-   * This really simplifies the code.
-   * ---
-   * Similar to invariant but only logs a warning if the condition is not met.
-   * This can be used to log issues in development environments in critical
-   * paths. Removing the logging code for production environments will keep the
-   * same logic and follow the same code paths.
-   */
+            if (!condition) {
+              for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+                args[_key2 - 2] = arguments[_key2];
+              }
 
-  var lowPriorityWarning = function () {};
+              printWarning.apply(undefined, [format].concat(args));
+            }
+          };
+        }
+        var lowPriorityWarning$1 = lowPriorityWarning;
 
-  {
-    var printWarning = function (format) {
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
-      }
+        function typeOf(object) {
+          if (_typeof(object) === 'object' && object !== null) {
+            var $$typeof = object.$$typeof;
 
-      var argIndex = 0;
-      var message = 'Warning: ' + format.replace(/%s/g, function () {
-        return args[argIndex++];
-      });
-      if (typeof console !== 'undefined') {
-        console.warn(message);
-      }
-      try {
-        // --- Welcome to debugging React ---
-        // This error was thrown as a convenience so that you can use this stack
-        // to find the callsite that caused this warning to fire.
-        throw new Error(message);
-      } catch (x) {}
-    };
+            switch ($$typeof) {
+              case REACT_ELEMENT_TYPE:
+                var type = object.type;
 
-    lowPriorityWarning = function (condition, format) {
-      if (format === undefined) {
-        throw new Error('`lowPriorityWarning(condition, format, ...args)` requires a warning ' + 'message argument');
-      }
-      if (!condition) {
-        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-          args[_key2 - 2] = arguments[_key2];
+                switch (type) {
+                  case REACT_ASYNC_MODE_TYPE:
+                  case REACT_CONCURRENT_MODE_TYPE:
+                  case REACT_FRAGMENT_TYPE:
+                  case REACT_PROFILER_TYPE:
+                  case REACT_STRICT_MODE_TYPE:
+                  case REACT_SUSPENSE_TYPE:
+                    return type;
+
+                  default:
+                    var $$typeofType = type && type.$$typeof;
+
+                    switch ($$typeofType) {
+                      case REACT_CONTEXT_TYPE:
+                      case REACT_FORWARD_REF_TYPE:
+                      case REACT_PROVIDER_TYPE:
+                        return $$typeofType;
+
+                      default:
+                        return $$typeof;
+                    }
+
+                }
+
+              case REACT_LAZY_TYPE:
+              case REACT_MEMO_TYPE:
+              case REACT_PORTAL_TYPE:
+                return $$typeof;
+            }
+          }
+
+          return undefined;
+        } // AsyncMode is deprecated along with isAsyncMode
+
+
+        var AsyncMode = REACT_ASYNC_MODE_TYPE;
+        var ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
+        var ContextConsumer = REACT_CONTEXT_TYPE;
+        var ContextProvider = REACT_PROVIDER_TYPE;
+        var Element = REACT_ELEMENT_TYPE;
+        var ForwardRef = REACT_FORWARD_REF_TYPE;
+        var Fragment = REACT_FRAGMENT_TYPE;
+        var Lazy = REACT_LAZY_TYPE;
+        var Memo = REACT_MEMO_TYPE;
+        var Portal = REACT_PORTAL_TYPE;
+        var Profiler = REACT_PROFILER_TYPE;
+        var StrictMode = REACT_STRICT_MODE_TYPE;
+        var Suspense = REACT_SUSPENSE_TYPE;
+        var hasWarnedAboutDeprecatedIsAsyncMode = false; // AsyncMode should be deprecated
+
+        function isAsyncMode(object) {
+          {
+            if (!hasWarnedAboutDeprecatedIsAsyncMode) {
+              hasWarnedAboutDeprecatedIsAsyncMode = true;
+              lowPriorityWarning$1(false, 'The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
+            }
+          }
+          return isConcurrentMode(object) || typeOf(object) === REACT_ASYNC_MODE_TYPE;
         }
 
-        printWarning.apply(undefined, [format].concat(args));
-      }
-    };
-  }
+        function isConcurrentMode(object) {
+          return typeOf(object) === REACT_CONCURRENT_MODE_TYPE;
+        }
 
-  var lowPriorityWarning$1 = lowPriorityWarning;
+        function isContextConsumer(object) {
+          return typeOf(object) === REACT_CONTEXT_TYPE;
+        }
 
-  function typeOf(object) {
-    if (typeof object === 'object' && object !== null) {
-      var $$typeof = object.$$typeof;
-      switch ($$typeof) {
-        case REACT_ELEMENT_TYPE:
-          var type = object.type;
+        function isContextProvider(object) {
+          return typeOf(object) === REACT_PROVIDER_TYPE;
+        }
 
-          switch (type) {
-            case REACT_ASYNC_MODE_TYPE:
-            case REACT_CONCURRENT_MODE_TYPE:
-            case REACT_FRAGMENT_TYPE:
-            case REACT_PROFILER_TYPE:
-            case REACT_STRICT_MODE_TYPE:
-            case REACT_SUSPENSE_TYPE:
-              return type;
-            default:
-              var $$typeofType = type && type.$$typeof;
+        function isElement(object) {
+          return _typeof(object) === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
+        }
 
-              switch ($$typeofType) {
-                case REACT_CONTEXT_TYPE:
-                case REACT_FORWARD_REF_TYPE:
-                case REACT_PROVIDER_TYPE:
-                  return $$typeofType;
-                default:
-                  return $$typeof;
-              }
-          }
-        case REACT_LAZY_TYPE:
-        case REACT_MEMO_TYPE:
-        case REACT_PORTAL_TYPE:
-          return $$typeof;
-      }
+        function isForwardRef(object) {
+          return typeOf(object) === REACT_FORWARD_REF_TYPE;
+        }
+
+        function isFragment(object) {
+          return typeOf(object) === REACT_FRAGMENT_TYPE;
+        }
+
+        function isLazy(object) {
+          return typeOf(object) === REACT_LAZY_TYPE;
+        }
+
+        function isMemo(object) {
+          return typeOf(object) === REACT_MEMO_TYPE;
+        }
+
+        function isPortal(object) {
+          return typeOf(object) === REACT_PORTAL_TYPE;
+        }
+
+        function isProfiler(object) {
+          return typeOf(object) === REACT_PROFILER_TYPE;
+        }
+
+        function isStrictMode(object) {
+          return typeOf(object) === REACT_STRICT_MODE_TYPE;
+        }
+
+        function isSuspense(object) {
+          return typeOf(object) === REACT_SUSPENSE_TYPE;
+        }
+
+        exports.typeOf = typeOf;
+        exports.AsyncMode = AsyncMode;
+        exports.ConcurrentMode = ConcurrentMode;
+        exports.ContextConsumer = ContextConsumer;
+        exports.ContextProvider = ContextProvider;
+        exports.Element = Element;
+        exports.ForwardRef = ForwardRef;
+        exports.Fragment = Fragment;
+        exports.Lazy = Lazy;
+        exports.Memo = Memo;
+        exports.Portal = Portal;
+        exports.Profiler = Profiler;
+        exports.StrictMode = StrictMode;
+        exports.Suspense = Suspense;
+        exports.isValidElementType = isValidElementType;
+        exports.isAsyncMode = isAsyncMode;
+        exports.isConcurrentMode = isConcurrentMode;
+        exports.isContextConsumer = isContextConsumer;
+        exports.isContextProvider = isContextProvider;
+        exports.isElement = isElement;
+        exports.isForwardRef = isForwardRef;
+        exports.isFragment = isFragment;
+        exports.isLazy = isLazy;
+        exports.isMemo = isMemo;
+        exports.isPortal = isPortal;
+        exports.isProfiler = isProfiler;
+        exports.isStrictMode = isStrictMode;
+        exports.isSuspense = isSuspense;
+      })();
     }
-
-    return undefined;
-  }
-
-  // AsyncMode is deprecated along with isAsyncMode
-  var AsyncMode = REACT_ASYNC_MODE_TYPE;
-  var ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
-  var ContextConsumer = REACT_CONTEXT_TYPE;
-  var ContextProvider = REACT_PROVIDER_TYPE;
-  var Element = REACT_ELEMENT_TYPE;
-  var ForwardRef = REACT_FORWARD_REF_TYPE;
-  var Fragment = REACT_FRAGMENT_TYPE;
-  var Lazy = REACT_LAZY_TYPE;
-  var Memo = REACT_MEMO_TYPE;
-  var Portal = REACT_PORTAL_TYPE;
-  var Profiler = REACT_PROFILER_TYPE;
-  var StrictMode = REACT_STRICT_MODE_TYPE;
-  var Suspense = REACT_SUSPENSE_TYPE;
-
-  var hasWarnedAboutDeprecatedIsAsyncMode = false;
-
-  // AsyncMode should be deprecated
-  function isAsyncMode(object) {
-    {
-      if (!hasWarnedAboutDeprecatedIsAsyncMode) {
-        hasWarnedAboutDeprecatedIsAsyncMode = true;
-        lowPriorityWarning$1(false, 'The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
-      }
-    }
-    return isConcurrentMode(object) || typeOf(object) === REACT_ASYNC_MODE_TYPE;
-  }
-  function isConcurrentMode(object) {
-    return typeOf(object) === REACT_CONCURRENT_MODE_TYPE;
-  }
-  function isContextConsumer(object) {
-    return typeOf(object) === REACT_CONTEXT_TYPE;
-  }
-  function isContextProvider(object) {
-    return typeOf(object) === REACT_PROVIDER_TYPE;
-  }
-  function isElement(object) {
-    return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
-  }
-  function isForwardRef(object) {
-    return typeOf(object) === REACT_FORWARD_REF_TYPE;
-  }
-  function isFragment(object) {
-    return typeOf(object) === REACT_FRAGMENT_TYPE;
-  }
-  function isLazy(object) {
-    return typeOf(object) === REACT_LAZY_TYPE;
-  }
-  function isMemo(object) {
-    return typeOf(object) === REACT_MEMO_TYPE;
-  }
-  function isPortal(object) {
-    return typeOf(object) === REACT_PORTAL_TYPE;
-  }
-  function isProfiler(object) {
-    return typeOf(object) === REACT_PROFILER_TYPE;
-  }
-  function isStrictMode(object) {
-    return typeOf(object) === REACT_STRICT_MODE_TYPE;
-  }
-  function isSuspense(object) {
-    return typeOf(object) === REACT_SUSPENSE_TYPE;
-  }
-
-  exports.typeOf = typeOf;
-  exports.AsyncMode = AsyncMode;
-  exports.ConcurrentMode = ConcurrentMode;
-  exports.ContextConsumer = ContextConsumer;
-  exports.ContextProvider = ContextProvider;
-  exports.Element = Element;
-  exports.ForwardRef = ForwardRef;
-  exports.Fragment = Fragment;
-  exports.Lazy = Lazy;
-  exports.Memo = Memo;
-  exports.Portal = Portal;
-  exports.Profiler = Profiler;
-  exports.StrictMode = StrictMode;
-  exports.Suspense = Suspense;
-  exports.isValidElementType = isValidElementType;
-  exports.isAsyncMode = isAsyncMode;
-  exports.isConcurrentMode = isConcurrentMode;
-  exports.isContextConsumer = isContextConsumer;
-  exports.isContextProvider = isContextProvider;
-  exports.isElement = isElement;
-  exports.isForwardRef = isForwardRef;
-  exports.isFragment = isFragment;
-  exports.isLazy = isLazy;
-  exports.isMemo = isMemo;
-  exports.isPortal = isPortal;
-  exports.isProfiler = isProfiler;
-  exports.isStrictMode = isStrictMode;
-  exports.isSuspense = isSuspense;
-    })();
-  }
   });
-
   unwrapExports(reactIs_development);
   var reactIs_development_1 = reactIs_development.typeOf;
   var reactIs_development_2 = reactIs_development.AsyncMode;
@@ -1466,103 +1660,106 @@
   var reactIs_development_26 = reactIs_development.isProfiler;
   var reactIs_development_27 = reactIs_development.isStrictMode;
   var reactIs_development_28 = reactIs_development.isSuspense;
-
   var reactIs = createCommonjsModule$1(function (module) {
-
-  {
-    module.exports = reactIs_development;
-  }
+    {
+      module.exports = reactIs_development;
+    }
   });
-
   /*
   object-assign
   (c) Sindre Sorhus
   @license MIT
   */
+
   /* eslint-disable no-unused-vars */
+
   var getOwnPropertySymbols = Object.getOwnPropertySymbols;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
   function toObject(val) {
-  	if (val === null || val === undefined) {
-  		throw new TypeError('Object.assign cannot be called with null or undefined');
-  	}
+    if (val === null || val === undefined) {
+      throw new TypeError('Object.assign cannot be called with null or undefined');
+    }
 
-  	return Object(val);
+    return Object(val);
   }
 
   function shouldUseNative() {
-  	try {
-  		if (!Object.assign) {
-  			return false;
-  		}
+    try {
+      if (!Object.assign) {
+        return false;
+      } // Detect buggy property enumeration order in older V8 versions.
+      // https://bugs.chromium.org/p/v8/issues/detail?id=4118
 
-  		// Detect buggy property enumeration order in older V8 versions.
 
-  		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-  		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
-  		test1[5] = 'de';
-  		if (Object.getOwnPropertyNames(test1)[0] === '5') {
-  			return false;
-  		}
+      var test1 = new String('abc'); // eslint-disable-line no-new-wrappers
 
-  		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-  		var test2 = {};
-  		for (var i = 0; i < 10; i++) {
-  			test2['_' + String.fromCharCode(i)] = i;
-  		}
-  		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
-  			return test2[n];
-  		});
-  		if (order2.join('') !== '0123456789') {
-  			return false;
-  		}
+      test1[5] = 'de';
 
-  		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-  		var test3 = {};
-  		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
-  			test3[letter] = letter;
-  		});
-  		if (Object.keys(Object.assign({}, test3)).join('') !==
-  				'abcdefghijklmnopqrst') {
-  			return false;
-  		}
+      if (Object.getOwnPropertyNames(test1)[0] === '5') {
+        return false;
+      } // https://bugs.chromium.org/p/v8/issues/detail?id=3056
 
-  		return true;
-  	} catch (err) {
-  		// We don't expect any of the above to throw, but better to be safe.
-  		return false;
-  	}
+
+      var test2 = {};
+
+      for (var i = 0; i < 10; i++) {
+        test2['_' + String.fromCharCode(i)] = i;
+      }
+
+      var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
+        return test2[n];
+      });
+
+      if (order2.join('') !== '0123456789') {
+        return false;
+      } // https://bugs.chromium.org/p/v8/issues/detail?id=3056
+
+
+      var test3 = {};
+      'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
+        test3[letter] = letter;
+      });
+
+      if (Object.keys(Object.assign({}, test3)).join('') !== 'abcdefghijklmnopqrst') {
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      // We don't expect any of the above to throw, but better to be safe.
+      return false;
+    }
   }
 
   var objectAssign = shouldUseNative() ? Object.assign : function (target, source) {
-  	var from;
-  	var to = toObject(target);
-  	var symbols;
+    var from;
+    var to = toObject(target);
+    var symbols;
 
-  	for (var s = 1; s < arguments.length; s++) {
-  		from = Object(arguments[s]);
+    for (var s = 1; s < arguments.length; s++) {
+      from = Object(arguments[s]);
 
-  		for (var key in from) {
-  			if (hasOwnProperty.call(from, key)) {
-  				to[key] = from[key];
-  			}
-  		}
+      for (var key in from) {
+        if (hasOwnProperty.call(from, key)) {
+          to[key] = from[key];
+        }
+      }
 
-  		if (getOwnPropertySymbols) {
-  			symbols = getOwnPropertySymbols(from);
-  			for (var i = 0; i < symbols.length; i++) {
-  				if (propIsEnumerable.call(from, symbols[i])) {
-  					to[symbols[i]] = from[symbols[i]];
-  				}
-  			}
-  		}
-  	}
+      if (getOwnPropertySymbols) {
+        symbols = getOwnPropertySymbols(from);
 
-  	return to;
+        for (var i = 0; i < symbols.length; i++) {
+          if (propIsEnumerable.call(from, symbols[i])) {
+            to[symbols[i]] = from[symbols[i]];
+          }
+        }
+      }
+    }
+
+    return to;
   };
-
   /**
    * Copyright (c) 2013-present, Facebook, Inc.
    *
@@ -1571,21 +1768,22 @@
    */
 
   var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
-
   var ReactPropTypesSecret_1 = ReactPropTypesSecret;
 
-  var printWarning = function() {};
+  var printWarning = function printWarning() {};
 
   {
     var ReactPropTypesSecret$1 = ReactPropTypesSecret_1;
     var loggedTypeFailures = {};
     var has = Function.call.bind(Object.prototype.hasOwnProperty);
 
-    printWarning = function(text) {
+    printWarning = function printWarning(text) {
       var message = 'Warning: ' + text;
+
       if (typeof console !== 'undefined') {
         console.error(message);
       }
+
       try {
         // --- Welcome to debugging React ---
         // This error was thrown as a convenience so that you can use this stack
@@ -1594,7 +1792,6 @@
       } catch (x) {}
     };
   }
-
   /**
    * Assert that the values match with the type specs.
    * Error messages are memorized and will only be shown once.
@@ -1606,77 +1803,70 @@
    * @param {?Function} getStack Returns the component stack.
    * @private
    */
+
   function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
     {
       for (var typeSpecName in typeSpecs) {
         if (has(typeSpecs, typeSpecName)) {
-          var error;
-          // Prop type validation may throw. In case they do, we don't want to
+          var error; // Prop type validation may throw. In case they do, we don't want to
           // fail the render phase where it didn't fail before. So we log it.
           // After these have been cleaned up, we'll let them throw.
+
           try {
             // This is intentionally an invariant that gets caught. It's the same
             // behavior as without this statement except with a better message.
             if (typeof typeSpecs[typeSpecName] !== 'function') {
-              var err = Error(
-                (componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' +
-                'it must be a function, usually from the `prop-types` package, but received `' + typeof typeSpecs[typeSpecName] + '`.'
-              );
+              var err = Error((componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' + 'it must be a function, usually from the `prop-types` package, but received `' + _typeof(typeSpecs[typeSpecName]) + '`.');
               err.name = 'Invariant Violation';
               throw err;
             }
+
             error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret$1);
           } catch (ex) {
             error = ex;
           }
+
           if (error && !(error instanceof Error)) {
-            printWarning(
-              (componentName || 'React class') + ': type specification of ' +
-              location + ' `' + typeSpecName + '` is invalid; the type checker ' +
-              'function must return `null` or an `Error` but returned a ' + typeof error + '. ' +
-              'You may have forgotten to pass an argument to the type checker ' +
-              'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' +
-              'shape all require an argument).'
-            );
+            printWarning((componentName || 'React class') + ': type specification of ' + location + ' `' + typeSpecName + '` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a ' + _typeof(error) + '. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).');
           }
+
           if (error instanceof Error && !(error.message in loggedTypeFailures)) {
             // Only monitor this failure once because there tends to be a lot of the
             // same error.
             loggedTypeFailures[error.message] = true;
-
             var stack = getStack ? getStack() : '';
-
-            printWarning(
-              'Failed ' + location + ' type: ' + error.message + (stack != null ? stack : '')
-            );
+            printWarning('Failed ' + location + ' type: ' + error.message + (stack != null ? stack : ''));
           }
         }
       }
     }
   }
-
   /**
    * Resets warning cache when testing.
    *
    * @private
    */
-  checkPropTypes.resetWarningCache = function() {
+
+
+  checkPropTypes.resetWarningCache = function () {
     {
       loggedTypeFailures = {};
     }
   };
 
   var checkPropTypes_1 = checkPropTypes;
-
   var has$1 = Function.call.bind(Object.prototype.hasOwnProperty);
-  var printWarning$1 = function() {};
+
+  var printWarning$1 = function printWarning$1() {};
 
   {
-    printWarning$1 = function(text) {
+    printWarning$1 = function printWarning$1(text) {
       var message = 'Warning: ' + text;
+
       if (typeof console !== 'undefined') {
         console.error(message);
       }
+
       try {
         // --- Welcome to debugging React ---
         // This error was thrown as a convenience so that you can use this stack
@@ -1690,7 +1880,7 @@
     return null;
   }
 
-  var factoryWithTypeCheckers = function(isValidElement, throwOnDirectAccess) {
+  var factoryWithTypeCheckers = function factoryWithTypeCheckers(isValidElement, throwOnDirectAccess) {
     /* global Symbol */
     var ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
     var FAUX_ITERATOR_SYMBOL = '@@iterator'; // Before Symbol spec.
@@ -1709,13 +1899,14 @@
      * @param {?object} maybeIterable
      * @return {?function}
      */
+
     function getIteratorFn(maybeIterable) {
       var iteratorFn = maybeIterable && (ITERATOR_SYMBOL && maybeIterable[ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL]);
+
       if (typeof iteratorFn === 'function') {
         return iteratorFn;
       }
     }
-
     /**
      * Collection of methods that allow declaration and validation of props that are
      * supplied to React components. Example usage:
@@ -1763,10 +1954,10 @@
      * @internal
      */
 
-    var ANONYMOUS = '<<anonymous>>';
 
-    // Important!
+    var ANONYMOUS = '<<anonymous>>'; // Important!
     // Keep this list in sync with production version in `./factoryWithThrowingShims.js`.
+
     var ReactPropTypes = {
       array: createPrimitiveTypeChecker('array'),
       bool: createPrimitiveTypeChecker('boolean'),
@@ -1775,7 +1966,6 @@
       object: createPrimitiveTypeChecker('object'),
       string: createPrimitiveTypeChecker('string'),
       symbol: createPrimitiveTypeChecker('symbol'),
-
       any: createAnyTypeChecker(),
       arrayOf: createArrayOfTypeChecker,
       element: createElementTypeChecker(),
@@ -1786,14 +1976,15 @@
       oneOf: createEnumTypeChecker,
       oneOfType: createUnionTypeChecker,
       shape: createShapeTypeChecker,
-      exact: createStrictShapeTypeChecker,
+      exact: createStrictShapeTypeChecker
     };
-
     /**
      * inlined Object.is polyfill to avoid requiring consumers ship their own
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
      */
+
     /*eslint-disable no-self-compare*/
+
     function is(x, y) {
       // SameValue algorithm
       if (x === y) {
@@ -1814,11 +2005,14 @@
      * is prohibitively expensive if they are created too often, such as what
      * happens in oneOfType() for any type before the one that matched.
      */
+
+
     function PropTypeError(message) {
       this.message = message;
       this.stack = '';
-    }
-    // Make `instanceof Error` still work for returned errors.
+    } // Make `instanceof Error` still work for returned errors.
+
+
     PropTypeError.prototype = Error.prototype;
 
     function createChainableTypeChecker(validate) {
@@ -1826,6 +2020,7 @@
         var manualPropTypeCallCache = {};
         var manualPropTypeWarningCount = 0;
       }
+
       function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
         componentName = componentName || ANONYMOUS;
         propFullName = propFullName || propName;
@@ -1833,40 +2028,31 @@
         if (secret !== ReactPropTypesSecret_1) {
           if (throwOnDirectAccess) {
             // New behavior only for users of `prop-types` package
-            var err = new Error(
-              'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
-              'Use `PropTypes.checkPropTypes()` to call them. ' +
-              'Read more at http://fb.me/use-check-prop-types'
-            );
+            var err = new Error('Calling PropTypes validators directly is not supported by the `prop-types` package. ' + 'Use `PropTypes.checkPropTypes()` to call them. ' + 'Read more at http://fb.me/use-check-prop-types');
             err.name = 'Invariant Violation';
             throw err;
           } else if (typeof console !== 'undefined') {
             // Old behavior for people using React.PropTypes
             var cacheKey = componentName + ':' + propName;
-            if (
-              !manualPropTypeCallCache[cacheKey] &&
-              // Avoid spamming the console because they are often not actionable except for lib authors
-              manualPropTypeWarningCount < 3
-            ) {
-              printWarning$1(
-                'You are manually calling a React.PropTypes validation ' +
-                'function for the `' + propFullName + '` prop on `' + componentName  + '`. This is deprecated ' +
-                'and will throw in the standalone `prop-types` package. ' +
-                'You may be seeing this warning due to a third-party PropTypes ' +
-                'library. See https://fb.me/react-warning-dont-call-proptypes ' + 'for details.'
-              );
+
+            if (!manualPropTypeCallCache[cacheKey] && // Avoid spamming the console because they are often not actionable except for lib authors
+            manualPropTypeWarningCount < 3) {
+              printWarning$1('You are manually calling a React.PropTypes validation ' + 'function for the `' + propFullName + '` prop on `' + componentName + '`. This is deprecated ' + 'and will throw in the standalone `prop-types` package. ' + 'You may be seeing this warning due to a third-party PropTypes ' + 'library. See https://fb.me/react-warning-dont-call-proptypes ' + 'for details.');
               manualPropTypeCallCache[cacheKey] = true;
               manualPropTypeWarningCount++;
             }
           }
         }
+
         if (props[propName] == null) {
           if (isRequired) {
             if (props[propName] === null) {
               return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required ' + ('in `' + componentName + '`, but its value is `null`.'));
             }
+
             return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required in ' + ('`' + componentName + '`, but its value is `undefined`.'));
           }
+
           return null;
         } else {
           return validate(props, propName, componentName, location, propFullName);
@@ -1875,7 +2061,6 @@
 
       var chainedCheckType = checkType.bind(null, false);
       chainedCheckType.isRequired = checkType.bind(null, true);
-
       return chainedCheckType;
     }
 
@@ -1883,16 +2068,18 @@
       function validate(props, propName, componentName, location, propFullName, secret) {
         var propValue = props[propName];
         var propType = getPropType(propValue);
+
         if (propType !== expectedType) {
           // `propValue` being instance of, say, date/regexp, pass the 'object'
           // check, but we can offer a more precise error message here rather than
           // 'of type `object`'.
           var preciseType = getPreciseType(propValue);
-
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + preciseType + '` supplied to `' + componentName + '`, expected ') + ('`' + expectedType + '`.'));
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -1905,43 +2092,55 @@
         if (typeof typeChecker !== 'function') {
           return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside arrayOf.');
         }
+
         var propValue = props[propName];
+
         if (!Array.isArray(propValue)) {
           var propType = getPropType(propValue);
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an array.'));
         }
+
         for (var i = 0; i < propValue.length; i++) {
           var error = typeChecker(propValue, i, componentName, location, propFullName + '[' + i + ']', ReactPropTypesSecret_1);
+
           if (error instanceof Error) {
             return error;
           }
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
     function createElementTypeChecker() {
       function validate(props, propName, componentName, location, propFullName) {
         var propValue = props[propName];
+
         if (!isValidElement(propValue)) {
           var propType = getPropType(propValue);
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement.'));
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
     function createElementTypeTypeChecker() {
       function validate(props, propName, componentName, location, propFullName) {
         var propValue = props[propName];
+
         if (!reactIs.isValidElementType(propValue)) {
           var propType = getPropType(propValue);
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement type.'));
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -1952,8 +2151,10 @@
           var actualClassName = getClassName(props[propName]);
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + actualClassName + '` supplied to `' + componentName + '`, expected ') + ('instance of `' + expectedClassName + '`.'));
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -1961,19 +2162,18 @@
       if (!Array.isArray(expectedValues)) {
         {
           if (arguments.length > 1) {
-            printWarning$1(
-              'Invalid arguments supplied to oneOf, expected an array, got ' + arguments.length + ' arguments. ' +
-              'A common mistake is to write oneOf(x, y, z) instead of oneOf([x, y, z]).'
-            );
+            printWarning$1('Invalid arguments supplied to oneOf, expected an array, got ' + arguments.length + ' arguments. ' + 'A common mistake is to write oneOf(x, y, z) instead of oneOf([x, y, z]).');
           } else {
             printWarning$1('Invalid argument supplied to oneOf, expected an array.');
           }
         }
+
         return emptyFunctionThatReturnsNull;
       }
 
       function validate(props, propName, componentName, location, propFullName) {
         var propValue = props[propName];
+
         for (var i = 0; i < expectedValues.length; i++) {
           if (is(propValue, expectedValues[i])) {
             return null;
@@ -1982,13 +2182,16 @@
 
         var valuesString = JSON.stringify(expectedValues, function replacer(key, value) {
           var type = getPreciseType(value);
+
           if (type === 'symbol') {
             return String(value);
           }
+
           return value;
         });
         return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of value `' + String(propValue) + '` ' + ('supplied to `' + componentName + '`, expected one of ' + valuesString + '.'));
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -1997,21 +2200,27 @@
         if (typeof typeChecker !== 'function') {
           return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside objectOf.');
         }
+
         var propValue = props[propName];
         var propType = getPropType(propValue);
+
         if (propType !== 'object') {
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an object.'));
         }
+
         for (var key in propValue) {
           if (has$1(propValue, key)) {
             var error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret_1);
+
             if (error instanceof Error) {
               return error;
             }
           }
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -2023,11 +2232,9 @@
 
       for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
         var checker = arrayOfTypeCheckers[i];
+
         if (typeof checker !== 'function') {
-          printWarning$1(
-            'Invalid argument supplied to oneOfType. Expected an array of check functions, but ' +
-            'received ' + getPostfixForTypeWarning(checker) + ' at index ' + i + '.'
-          );
+          printWarning$1('Invalid argument supplied to oneOfType. Expected an array of check functions, but ' + 'received ' + getPostfixForTypeWarning(checker) + ' at index ' + i + '.');
           return emptyFunctionThatReturnsNull;
         }
       }
@@ -2035,6 +2242,7 @@
       function validate(props, propName, componentName, location, propFullName) {
         for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
           var checker = arrayOfTypeCheckers[i];
+
           if (checker(props, propName, componentName, location, propFullName, ReactPropTypesSecret_1) == null) {
             return null;
           }
@@ -2042,6 +2250,7 @@
 
         return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`.'));
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -2050,8 +2259,10 @@
         if (!isNode(props[propName])) {
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`, expected a ReactNode.'));
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -2059,21 +2270,28 @@
       function validate(props, propName, componentName, location, propFullName) {
         var propValue = props[propName];
         var propType = getPropType(propValue);
+
         if (propType !== 'object') {
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
         }
+
         for (var key in shapeTypes) {
           var checker = shapeTypes[key];
+
           if (!checker) {
             continue;
           }
+
           var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret_1);
+
           if (error) {
             return error;
           }
         }
+
         return null;
       }
+
       return createChainableTypeChecker(validate);
     }
 
@@ -2081,26 +2299,29 @@
       function validate(props, propName, componentName, location, propFullName) {
         var propValue = props[propName];
         var propType = getPropType(propValue);
+
         if (propType !== 'object') {
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
-        }
-        // We need to check all keys in case some are required but missing from
+        } // We need to check all keys in case some are required but missing from
         // props.
+
+
         var allKeys = objectAssign({}, props[propName], shapeTypes);
+
         for (var key in allKeys) {
           var checker = shapeTypes[key];
+
           if (!checker) {
-            return new PropTypeError(
-              'Invalid ' + location + ' `' + propFullName + '` key `' + key + '` supplied to `' + componentName + '`.' +
-              '\nBad object: ' + JSON.stringify(props[propName], null, '  ') +
-              '\nValid keys: ' +  JSON.stringify(Object.keys(shapeTypes), null, '  ')
-            );
+            return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` key `' + key + '` supplied to `' + componentName + '`.' + '\nBad object: ' + JSON.stringify(props[propName], null, '  ') + '\nValid keys: ' + JSON.stringify(Object.keys(shapeTypes), null, '  '));
           }
+
           var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret_1);
+
           if (error) {
             return error;
           }
         }
+
         return null;
       }
 
@@ -2108,25 +2329,30 @@
     }
 
     function isNode(propValue) {
-      switch (typeof propValue) {
+      switch (_typeof(propValue)) {
         case 'number':
         case 'string':
         case 'undefined':
           return true;
+
         case 'boolean':
           return !propValue;
+
         case 'object':
           if (Array.isArray(propValue)) {
             return propValue.every(isNode);
           }
+
           if (propValue === null || isValidElement(propValue)) {
             return true;
           }
 
           var iteratorFn = getIteratorFn(propValue);
+
           if (iteratorFn) {
             var iterator = iteratorFn.call(propValue);
             var step;
+
             if (iteratorFn !== propValue.entries) {
               while (!(step = iterator.next()).done) {
                 if (!isNode(step.value)) {
@@ -2137,6 +2363,7 @@
               // Iterator will provide entry [k,v] tuples rather than values.
               while (!(step = iterator.next()).done) {
                 var entry = step.value;
+
                 if (entry) {
                   if (!isNode(entry[1])) {
                     return false;
@@ -2149,6 +2376,7 @@
           }
 
           return true;
+
         default:
           return false;
       }
@@ -2158,51 +2386,57 @@
       // Native Symbol.
       if (propType === 'symbol') {
         return true;
-      }
+      } // falsy value can't be a Symbol
 
-      // falsy value can't be a Symbol
+
       if (!propValue) {
         return false;
-      }
+      } // 19.4.3.5 Symbol.prototype[@@toStringTag] === 'Symbol'
 
-      // 19.4.3.5 Symbol.prototype[@@toStringTag] === 'Symbol'
+
       if (propValue['@@toStringTag'] === 'Symbol') {
         return true;
-      }
+      } // Fallback for non-spec compliant Symbols which are polyfilled.
 
-      // Fallback for non-spec compliant Symbols which are polyfilled.
+
       if (typeof Symbol === 'function' && propValue instanceof Symbol) {
         return true;
       }
 
       return false;
-    }
+    } // Equivalent of `typeof` but with special handling for array and regexp.
 
-    // Equivalent of `typeof` but with special handling for array and regexp.
+
     function getPropType(propValue) {
-      var propType = typeof propValue;
+      var propType = _typeof(propValue);
+
       if (Array.isArray(propValue)) {
         return 'array';
       }
+
       if (propValue instanceof RegExp) {
         // Old webkits (at least until Android 4.0) return 'function' rather than
         // 'object' for typeof a RegExp. We'll normalize this here so that /bla/
         // passes PropTypes.object.
         return 'object';
       }
+
       if (isSymbol(propType, propValue)) {
         return 'symbol';
       }
-      return propType;
-    }
 
-    // This handles more types than `getPropType`. Only used for error messages.
+      return propType;
+    } // This handles more types than `getPropType`. Only used for error messages.
     // See `createPrimitiveTypeChecker`.
+
+
     function getPreciseType(propValue) {
       if (typeof propValue === 'undefined' || propValue === null) {
         return '' + propValue;
       }
+
       var propType = getPropType(propValue);
+
       if (propType === 'object') {
         if (propValue instanceof Date) {
           return 'date';
@@ -2210,57 +2444,59 @@
           return 'regexp';
         }
       }
-      return propType;
-    }
 
-    // Returns a string that is postfixed to a warning about an invalid type.
+      return propType;
+    } // Returns a string that is postfixed to a warning about an invalid type.
     // For example, "undefined" or "of type array"
+
+
     function getPostfixForTypeWarning(value) {
       var type = getPreciseType(value);
+
       switch (type) {
         case 'array':
         case 'object':
           return 'an ' + type;
+
         case 'boolean':
         case 'date':
         case 'regexp':
           return 'a ' + type;
+
         default:
           return type;
       }
-    }
+    } // Returns class name of the object, if any.
 
-    // Returns class name of the object, if any.
+
     function getClassName(propValue) {
       if (!propValue.constructor || !propValue.constructor.name) {
         return ANONYMOUS;
       }
+
       return propValue.constructor.name;
     }
 
     ReactPropTypes.checkPropTypes = checkPropTypes_1;
     ReactPropTypes.resetWarningCache = checkPropTypes_1.resetWarningCache;
     ReactPropTypes.PropTypes = ReactPropTypes;
-
     return ReactPropTypes;
   };
 
   var propTypes = createCommonjsModule$1(function (module) {
-  /**
-   * Copyright (c) 2013-present, Facebook, Inc.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
+    /**
+     * Copyright (c) 2013-present, Facebook, Inc.
+     *
+     * This source code is licensed under the MIT license found in the
+     * LICENSE file in the root directory of this source tree.
+     */
+    {
+      var ReactIs = reactIs; // By explicitly using `prop-types` you are opting into new development behavior.
+      // http://fb.me/prop-types-in-prod
 
-  {
-    var ReactIs = reactIs;
-
-    // By explicitly using `prop-types` you are opting into new development behavior.
-    // http://fb.me/prop-types-in-prod
-    var throwOnDirectAccess = true;
-    module.exports = factoryWithTypeCheckers(ReactIs.isElement, throwOnDirectAccess);
-  }
+      var throwOnDirectAccess = true;
+      module.exports = factoryWithTypeCheckers(ReactIs.isElement, throwOnDirectAccess);
+    }
   });
 
   var coerceValue = function coerceValue(targetPropType, value) {
@@ -2297,6 +2533,7 @@
         return value;
     }
   };
+
   var getElementProps = function getElementProps(element, elementPropTypes, namespace) {
     var validate = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
     var props = Object.keys(elementPropTypes).reduce(function (acc, property) {
@@ -2336,11 +2573,13 @@
       throw new Error('spec.createInstance must be either a function or have a `instantiate` function');
     }
   };
+
   var validateComponentInstance = function validateComponentInstance(instance) {
     if (typeof instance.defaultAction !== 'function') {
       throw new Error("".concat(instance.spec.componentName, " instance has no defaultAction name"));
     }
   };
+
   var createComponentInstance = function createComponentInstance(system, spec, element) {
     var instance = _objectSpread({}, spec.createInstance(system, element, spec.instancePropTypes ? getElementProps(element, spec.instancePropTypes, spec.componentName) : {}), {
       spec: spec,
@@ -2350,6 +2589,7 @@
     validateComponentInstance(instance);
     return instance;
   };
+
   var instantiateComponents = function instantiateComponents(system, rootElement, componentDataAttribute) {
     return Array.from(rootElement.querySelectorAll(attributeSelector(componentDataAttribute))).map(function (element) {
       var componentName = element.getAttribute(componentDataAttribute);
@@ -2384,16 +2624,16 @@
   var ComponentSystem =
   /*#__PURE__*/
   function (_EventEmitter) {
-    _inherits(ComponentSystem, _EventEmitter);
+    _inherits$1(ComponentSystem, _EventEmitter);
 
     function ComponentSystem(namespace) {
       var _this;
 
       var specs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
-      _classCallCheck(this, ComponentSystem);
+      _classCallCheck$1(this, ComponentSystem);
 
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(ComponentSystem).call(this));
+      _this = _possibleConstructorReturn$1(this, _getPrototypeOf$1(ComponentSystem).call(this));
       validateNamespace(namespace);
       specs.forEach(validateComponentSpec);
       _this.rootElement = null;
@@ -2404,7 +2644,7 @@
       _this.instances = null;
       _this.ready = false; // Bind methods
 
-      _this.navHandleNavigation = _this.navHandleNavigation.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+      _this.navHandleNavigation = _this.navHandleNavigation.bind(_assertThisInitialized$1(_assertThisInitialized$1(_this)));
       return _this;
     }
     /**
@@ -2414,7 +2654,7 @@
      */
 
 
-    _createClass(ComponentSystem, [{
+    _createClass$1(ComponentSystem, [{
       key: "initialize",
       value: function initialize() {
         var _this2 = this;
@@ -2424,10 +2664,11 @@
         var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
             _ref$enableHashNaviga = _ref.enableHashNavigationTracking,
             enableHashNavigationTracking = _ref$enableHashNaviga === void 0 ? true : _ref$enableHashNaviga;
-
         /**
          * Loop through specs, initialize them
          */
+
+
         this.specs = this.specs.map(function (spec) {
           if (typeof spec.initialize === 'function') {
             spec.initialize(_this2);
@@ -2579,7 +2820,7 @@
             /**
              * Default action receives the targetElement as the first argument
              */
-            actionArgs = actionName === 'defaultAction' ? [targetElement].concat(_toConsumableArray(actionArgs)) : actionArgs;
+            actionArgs = actionName === 'defaultAction' ? [targetElement].concat(_toConsumableArray$1(actionArgs)) : actionArgs;
             actionFn.apply(null, actionArgs);
             handled = true;
           } else {
@@ -2594,11 +2835,11 @@
     return ComponentSystem;
   }(EventEmitter);
 
-  var index = (function () {
+  var index = function index() {
     var namespace = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'component';
     var specs = arguments.length > 1 ? arguments[1] : undefined;
     return new ComponentSystem(namespace, specs);
-  });
+  };
 
   var TRIGGER_COMPONENT_NAME = 'trigger';
 
@@ -2631,7 +2872,7 @@
     };
   };
 
-  var trigger = (function () {
+  var trigger = function trigger() {
     return {
       componentName: TRIGGER_COMPONENT_NAME,
       instancePropTypes: {
@@ -2642,34 +2883,33 @@
       },
       createInstance: createInstance
     };
-  });
+  };
 
-  const COMPONENT_NAME = 'game-activity';
-  const CARD_SELECTOR = '.activity__card';
-  const ACTIVITY_FOUND_SELECTOR = '.atividade-encontrada';
-  const unlockAudio = new Audio('resources/score-donut.mp3');
+  var COMPONENT_NAME = 'game-activity';
+  var CARD_SELECTOR = '.activity__card';
+  var ACTIVITY_FOUND_SELECTOR = '.atividade-encontrada';
+  var unlockAudio = new Audio('resources/score-donut.mp3');
 
-  const createInstance$1 = (system, componentRoot, {
-    points
-  }) => {
-    const activityId = componentRoot.getAttribute('id');
-    const activityFound = componentRoot.querySelector(ACTIVITY_FOUND_SELECTOR);
-    const activityCard = componentRoot.querySelector(CARD_SELECTOR);
-    activityCard.addEventListener('click', e => {
+  var createInstance$1 = function createInstance(system, componentRoot, _ref) {
+    var points = _ref.points;
+    var activityId = componentRoot.getAttribute('id');
+    var activityFound = componentRoot.querySelector(ACTIVITY_FOUND_SELECTOR);
+    var activityCard = componentRoot.querySelector(CARD_SELECTOR);
+    activityCard.addEventListener('click', function (e) {
       if (window.game.isActivityUnlocked(activityId)) {
         open();
       } else {
         alert('Abra a câmera e busque no pôster!');
       }
     });
-    activityFound.addEventListener('click', () => {
+    activityFound.addEventListener('click', function () {
       if (parseInt(componentRoot.getAttribute('data-game-activity-points')) > 0) {
         playUnlockAudio();
       }
     });
 
-    const playUnlockAudio = () => {
-      return new Promise((resolve, reject) => {
+    var playUnlockAudio = function playUnlockAudio() {
+      return new Promise(function (resolve, reject) {
         if (unlockAudio.readyState >= 2) {
           console.log('loaded');
           unlockAudio.currentTime = 0;
@@ -2677,7 +2917,7 @@
           resolve();
         } else {
           console.log('will load');
-          unlockAudio.addEventListener('canplay', e => {
+          unlockAudio.addEventListener('canplay', function (e) {
             unlockAudio.play();
             resolve();
           });
@@ -2685,7 +2925,7 @@
       });
     };
 
-    const unlock = () => {
+    var unlock = function unlock() {
       window.game.unlockActivity(activityId);
 
       if (parseInt(componentRoot.getAttribute('data-game-activity-points')) > 0) {
@@ -2695,17 +2935,17 @@
       open();
     };
 
-    const open = () => {
+    var open = function open() {
       window.game.activeActivity = activityId;
       componentRoot.classList.add('activity--details-open');
     };
 
-    const close = () => {
+    var close = function close() {
       window.game.activeActivity = null;
       componentRoot.classList.remove('activity--details-open');
     };
 
-    const updateActivityStatus = () => {
+    var updateActivityStatus = function updateActivityStatus() {
       if (window.game.isActivityUnlocked(activityId)) {
         componentRoot.classList.add('activity--details-unlocked');
       } else {
@@ -2722,16 +2962,16 @@
     updateActivityStatus();
     window.game.on('game-updated', updateActivityStatus);
     return {
-      defaultAction: () => {
+      defaultAction: function defaultAction() {
         unlock();
       },
-      unlock,
-      open,
-      close
+      unlock: unlock,
+      open: open,
+      close: close
     };
   };
 
-  var gameActivity = (() => {
+  var gameActivity = (function () {
     return {
       componentName: COMPONENT_NAME,
       createInstance: createInstance$1,
@@ -2741,17 +2981,17 @@
     };
   });
 
-  const COMPONENT_NAME$1 = 'game-score';
+  var COMPONENT_NAME$1 = 'game-score';
 
-  const createInstance$2 = (system, componentRoot) => {
-    let CURRENT_SCORE = 0;
+  var createInstance$2 = function createInstance(system, componentRoot) {
+    var CURRENT_SCORE = 0;
 
-    const renderScore = () => {
-      const targetScore = window.game.computeScore();
+    var renderScore = function renderScore() {
+      var targetScore = window.game.computeScore();
 
       if (targetScore > CURRENT_SCORE) {
         componentRoot.classList.add('score-added');
-        setTimeout(() => {
+        setTimeout(function () {
           componentRoot.classList.remove('score-added');
         }, 3000);
       }
@@ -2760,7 +3000,7 @@
       CURRENT_SCORE = targetScore;
     };
 
-    window.game.on('game-updated', () => {
+    window.game.on('game-updated', function () {
       renderScore();
     });
     renderScore();
@@ -2769,41 +3009,38 @@
     };
   };
 
-  var gameScore = (() => {
+  var gameScore = (function () {
     return {
       componentName: COMPONENT_NAME$1,
       createInstance: createInstance$2
     };
   });
 
-  var domain$1;
-
-  // This constructor is used to store event handlers. Instantiating this is
+  var domain$1; // This constructor is used to store event handlers. Instantiating this is
   // faster than explicitly calling `Object.create(null)` to get a "clean" empty
   // object (tested with v8 v4.9).
+
   function EventHandlers$1() {}
+
   EventHandlers$1.prototype = Object.create(null);
 
   function EventEmitter$1() {
     EventEmitter$1.init.call(this);
   }
-
-  // nodejs oddity
   // require('events') === require('events').EventEmitter
+
   EventEmitter$1.EventEmitter = EventEmitter$1;
-
   EventEmitter$1.usingDomains = false;
-
   EventEmitter$1.prototype.domain = undefined;
   EventEmitter$1.prototype._events = undefined;
-  EventEmitter$1.prototype._maxListeners = undefined;
-
-  // By default EventEmitters will print a warning if more than 10 listeners are
+  EventEmitter$1.prototype._maxListeners = undefined; // By default EventEmitters will print a warning if more than 10 listeners are
   // added to it. This is a useful default which helps finding memory leaks.
+
   EventEmitter$1.defaultMaxListeners = 10;
 
-  EventEmitter$1.init = function() {
+  EventEmitter$1.init = function () {
     this.domain = null;
+
     if (EventEmitter$1.usingDomains) {
       // if there is an active domain, then attach to it.
       if (domain$1.active && !(this instanceof domain$1.Domain)) ;
@@ -2815,102 +3052,97 @@
     }
 
     this._maxListeners = this._maxListeners || undefined;
-  };
-
-  // Obviously not all Emitters should be limited to 10. This function allows
+  }; // Obviously not all Emitters should be limited to 10. This function allows
   // that to be increased. Set to zero for unlimited.
+
+
   EventEmitter$1.prototype.setMaxListeners = function setMaxListeners(n) {
-    if (typeof n !== 'number' || n < 0 || isNaN(n))
-      throw new TypeError('"n" argument must be a positive number');
+    if (typeof n !== 'number' || n < 0 || isNaN(n)) throw new TypeError('"n" argument must be a positive number');
     this._maxListeners = n;
     return this;
   };
 
   function $getMaxListeners$1(that) {
-    if (that._maxListeners === undefined)
-      return EventEmitter$1.defaultMaxListeners;
+    if (that._maxListeners === undefined) return EventEmitter$1.defaultMaxListeners;
     return that._maxListeners;
   }
 
   EventEmitter$1.prototype.getMaxListeners = function getMaxListeners() {
     return $getMaxListeners$1(this);
-  };
-
-  // These standalone emit* functions are used to optimize calling of event
+  }; // These standalone emit* functions are used to optimize calling of event
   // handlers for fast cases because emit() itself often has a variable number of
   // arguments and can be deoptimized because of that. These functions always have
   // the same number of arguments and thus do not get deoptimized, so the code
   // inside them can execute faster.
+
+
   function emitNone$1(handler, isFn, self) {
-    if (isFn)
-      handler.call(self);
-    else {
+    if (isFn) handler.call(self);else {
       var len = handler.length;
       var listeners = arrayClone$1(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self);
+      }
     }
   }
+
   function emitOne$1(handler, isFn, self, arg1) {
-    if (isFn)
-      handler.call(self, arg1);
-    else {
+    if (isFn) handler.call(self, arg1);else {
       var len = handler.length;
       var listeners = arrayClone$1(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self, arg1);
+      }
     }
   }
+
   function emitTwo$1(handler, isFn, self, arg1, arg2) {
-    if (isFn)
-      handler.call(self, arg1, arg2);
-    else {
+    if (isFn) handler.call(self, arg1, arg2);else {
       var len = handler.length;
       var listeners = arrayClone$1(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self, arg1, arg2);
+      }
     }
   }
+
   function emitThree$1(handler, isFn, self, arg1, arg2, arg3) {
-    if (isFn)
-      handler.call(self, arg1, arg2, arg3);
-    else {
+    if (isFn) handler.call(self, arg1, arg2, arg3);else {
       var len = handler.length;
       var listeners = arrayClone$1(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].call(self, arg1, arg2, arg3);
+      }
     }
   }
 
   function emitMany$1(handler, isFn, self, args) {
-    if (isFn)
-      handler.apply(self, args);
-    else {
+    if (isFn) handler.apply(self, args);else {
       var len = handler.length;
       var listeners = arrayClone$1(handler, len);
-      for (var i = 0; i < len; ++i)
+
+      for (var i = 0; i < len; ++i) {
         listeners[i].apply(self, args);
+      }
     }
   }
 
   EventEmitter$1.prototype.emit = function emit(type) {
     var er, handler, len, args, i, events, domain;
-    var doError = (type === 'error');
-
+    var doError = type === 'error';
     events = this._events;
-    if (events)
-      doError = (doError && events.error == null);
-    else if (!doError)
-      return false;
+    if (events) doError = doError && events.error == null;else if (!doError) return false;
+    domain = this.domain; // If there is no 'error' event listener then throw.
 
-    domain = this.domain;
-
-    // If there is no 'error' event listener then throw.
     if (doError) {
       er = arguments[1];
+
       if (domain) {
-        if (!er)
-          er = new Error('Uncaught, unspecified "error" event');
+        if (!er) er = new Error('Uncaught, unspecified "error" event');
         er.domainEmitter = this;
         er.domain = domain;
         er.domainThrown = false;
@@ -2923,38 +3155,43 @@
         err.context = er;
         throw err;
       }
+
       return false;
     }
 
     handler = events[type];
-
-    if (!handler)
-      return false;
-
+    if (!handler) return false;
     var isFn = typeof handler === 'function';
     len = arguments.length;
+
     switch (len) {
       // fast cases
       case 1:
         emitNone$1(handler, isFn, this);
         break;
+
       case 2:
         emitOne$1(handler, isFn, this, arguments[1]);
         break;
+
       case 3:
         emitTwo$1(handler, isFn, this, arguments[1], arguments[2]);
         break;
+
       case 4:
         emitThree$1(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
         break;
       // slower
+
       default:
         args = new Array(len - 1);
-        for (i = 1; i < len; i++)
+
+        for (i = 1; i < len; i++) {
           args[i - 1] = arguments[i];
+        }
+
         emitMany$1(handler, isFn, this, args);
     }
-
     return true;
   };
 
@@ -2962,11 +3199,9 @@
     var m;
     var events;
     var existing;
-
-    if (typeof listener !== 'function')
-      throw new TypeError('"listener" argument must be a function');
-
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
     events = target._events;
+
     if (!events) {
       events = target._events = new EventHandlers$1();
       target._eventsCount = 0;
@@ -2974,13 +3209,12 @@
       // To avoid recursion in the case that type === "newListener"! Before
       // adding it to the listeners, first emit "newListener".
       if (events.newListener) {
-        target.emit('newListener', type,
-                    listener.listener ? listener.listener : listener);
-
-        // Re-assign `events` because a newListener handler could have caused the
+        target.emit('newListener', type, listener.listener ? listener.listener : listener); // Re-assign `events` because a newListener handler could have caused the
         // this._events to be assigned to a new object
+
         events = target._events;
       }
+
       existing = events[type];
     }
 
@@ -2991,8 +3225,7 @@
     } else {
       if (typeof existing === 'function') {
         // Adding the second element, need to change to array.
-        existing = events[type] = prepend ? [listener, existing] :
-                                            [existing, listener];
+        existing = events[type] = prepend ? [listener, existing] : [existing, listener];
       } else {
         // If we've already got an array, just append.
         if (prepend) {
@@ -3000,16 +3233,15 @@
         } else {
           existing.push(listener);
         }
-      }
+      } // Check for listener leak
 
-      // Check for listener leak
+
       if (!existing.warned) {
         m = $getMaxListeners$1(target);
+
         if (m && m > 0 && existing.length > m) {
           existing.warned = true;
-          var w = new Error('Possible EventEmitter memory leak detected. ' +
-                              existing.length + ' ' + type + ' listeners added. ' +
-                              'Use emitter.setMaxListeners() to increase limit');
+          var w = new Error('Possible EventEmitter memory leak detected. ' + existing.length + ' ' + type + ' listeners added. ' + 'Use emitter.setMaxListeners() to increase limit');
           w.name = 'MaxListenersExceededWarning';
           w.emitter = target;
           w.type = type;
@@ -3021,177 +3253,153 @@
 
     return target;
   }
+
   function emitWarning$1(e) {
     typeof console.warn === 'function' ? console.warn(e) : console.log(e);
   }
+
   EventEmitter$1.prototype.addListener = function addListener(type, listener) {
     return _addListener$1(this, type, listener, false);
   };
 
   EventEmitter$1.prototype.on = EventEmitter$1.prototype.addListener;
 
-  EventEmitter$1.prototype.prependListener =
-      function prependListener(type, listener) {
-        return _addListener$1(this, type, listener, true);
-      };
+  EventEmitter$1.prototype.prependListener = function prependListener(type, listener) {
+    return _addListener$1(this, type, listener, true);
+  };
 
   function _onceWrap$1(target, type, listener) {
     var fired = false;
+
     function g() {
       target.removeListener(type, g);
+
       if (!fired) {
         fired = true;
         listener.apply(target, arguments);
       }
     }
+
     g.listener = listener;
     return g;
   }
 
   EventEmitter$1.prototype.once = function once(type, listener) {
-    if (typeof listener !== 'function')
-      throw new TypeError('"listener" argument must be a function');
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
     this.on(type, _onceWrap$1(this, type, listener));
     return this;
   };
 
-  EventEmitter$1.prototype.prependOnceListener =
-      function prependOnceListener(type, listener) {
-        if (typeof listener !== 'function')
-          throw new TypeError('"listener" argument must be a function');
-        this.prependListener(type, _onceWrap$1(this, type, listener));
-        return this;
-      };
+  EventEmitter$1.prototype.prependOnceListener = function prependOnceListener(type, listener) {
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+    this.prependListener(type, _onceWrap$1(this, type, listener));
+    return this;
+  }; // emits a 'removeListener' event iff the listener was removed
 
-  // emits a 'removeListener' event iff the listener was removed
-  EventEmitter$1.prototype.removeListener =
-      function removeListener(type, listener) {
-        var list, events, position, i, originalListener;
 
-        if (typeof listener !== 'function')
-          throw new TypeError('"listener" argument must be a function');
+  EventEmitter$1.prototype.removeListener = function removeListener(type, listener) {
+    var list, events, position, i, originalListener;
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+    events = this._events;
+    if (!events) return this;
+    list = events[type];
+    if (!list) return this;
 
-        events = this._events;
-        if (!events)
-          return this;
+    if (list === listener || list.listener && list.listener === listener) {
+      if (--this._eventsCount === 0) this._events = new EventHandlers$1();else {
+        delete events[type];
+        if (events.removeListener) this.emit('removeListener', type, list.listener || listener);
+      }
+    } else if (typeof list !== 'function') {
+      position = -1;
 
-        list = events[type];
-        if (!list)
-          return this;
-
-        if (list === listener || (list.listener && list.listener === listener)) {
-          if (--this._eventsCount === 0)
-            this._events = new EventHandlers$1();
-          else {
-            delete events[type];
-            if (events.removeListener)
-              this.emit('removeListener', type, list.listener || listener);
-          }
-        } else if (typeof list !== 'function') {
-          position = -1;
-
-          for (i = list.length; i-- > 0;) {
-            if (list[i] === listener ||
-                (list[i].listener && list[i].listener === listener)) {
-              originalListener = list[i].listener;
-              position = i;
-              break;
-            }
-          }
-
-          if (position < 0)
-            return this;
-
-          if (list.length === 1) {
-            list[0] = undefined;
-            if (--this._eventsCount === 0) {
-              this._events = new EventHandlers$1();
-              return this;
-            } else {
-              delete events[type];
-            }
-          } else {
-            spliceOne$1(list, position);
-          }
-
-          if (events.removeListener)
-            this.emit('removeListener', type, originalListener || listener);
+      for (i = list.length; i-- > 0;) {
+        if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+          originalListener = list[i].listener;
+          position = i;
+          break;
         }
+      }
 
-        return this;
-      };
+      if (position < 0) return this;
 
-  EventEmitter$1.prototype.removeAllListeners =
-      function removeAllListeners(type) {
-        var listeners, events;
+      if (list.length === 1) {
+        list[0] = undefined;
 
-        events = this._events;
-        if (!events)
-          return this;
-
-        // not listening for removeListener, no need to emit
-        if (!events.removeListener) {
-          if (arguments.length === 0) {
-            this._events = new EventHandlers$1();
-            this._eventsCount = 0;
-          } else if (events[type]) {
-            if (--this._eventsCount === 0)
-              this._events = new EventHandlers$1();
-            else
-              delete events[type];
-          }
-          return this;
-        }
-
-        // emit removeListener for all listeners on all events
-        if (arguments.length === 0) {
-          var keys = Object.keys(events);
-          for (var i = 0, key; i < keys.length; ++i) {
-            key = keys[i];
-            if (key === 'removeListener') continue;
-            this.removeAllListeners(key);
-          }
-          this.removeAllListeners('removeListener');
+        if (--this._eventsCount === 0) {
           this._events = new EventHandlers$1();
-          this._eventsCount = 0;
           return this;
+        } else {
+          delete events[type];
         }
+      } else {
+        spliceOne$1(list, position);
+      }
 
-        listeners = events[type];
+      if (events.removeListener) this.emit('removeListener', type, originalListener || listener);
+    }
 
-        if (typeof listeners === 'function') {
-          this.removeListener(type, listeners);
-        } else if (listeners) {
-          // LIFO order
-          do {
-            this.removeListener(type, listeners[listeners.length - 1]);
-          } while (listeners[0]);
-        }
+    return this;
+  };
 
-        return this;
-      };
+  EventEmitter$1.prototype.removeAllListeners = function removeAllListeners(type) {
+    var listeners, events;
+    events = this._events;
+    if (!events) return this; // not listening for removeListener, no need to emit
+
+    if (!events.removeListener) {
+      if (arguments.length === 0) {
+        this._events = new EventHandlers$1();
+        this._eventsCount = 0;
+      } else if (events[type]) {
+        if (--this._eventsCount === 0) this._events = new EventHandlers$1();else delete events[type];
+      }
+
+      return this;
+    } // emit removeListener for all listeners on all events
+
+
+    if (arguments.length === 0) {
+      var keys = Object.keys(events);
+
+      for (var i = 0, key; i < keys.length; ++i) {
+        key = keys[i];
+        if (key === 'removeListener') continue;
+        this.removeAllListeners(key);
+      }
+
+      this.removeAllListeners('removeListener');
+      this._events = new EventHandlers$1();
+      this._eventsCount = 0;
+      return this;
+    }
+
+    listeners = events[type];
+
+    if (typeof listeners === 'function') {
+      this.removeListener(type, listeners);
+    } else if (listeners) {
+      // LIFO order
+      do {
+        this.removeListener(type, listeners[listeners.length - 1]);
+      } while (listeners[0]);
+    }
+
+    return this;
+  };
 
   EventEmitter$1.prototype.listeners = function listeners(type) {
     var evlistener;
     var ret;
     var events = this._events;
-
-    if (!events)
-      ret = [];
-    else {
+    if (!events) ret = [];else {
       evlistener = events[type];
-      if (!evlistener)
-        ret = [];
-      else if (typeof evlistener === 'function')
-        ret = [evlistener.listener || evlistener];
-      else
-        ret = unwrapListeners$1(evlistener);
+      if (!evlistener) ret = [];else if (typeof evlistener === 'function') ret = [evlistener.listener || evlistener];else ret = unwrapListeners$1(evlistener);
     }
-
     return ret;
   };
 
-  EventEmitter$1.listenerCount = function(emitter, type) {
+  EventEmitter$1.listenerCount = function (emitter, type) {
     if (typeof emitter.listenerCount === 'function') {
       return emitter.listenerCount(type);
     } else {
@@ -3200,6 +3408,7 @@
   };
 
   EventEmitter$1.prototype.listenerCount = listenerCount$1;
+
   function listenerCount$1(type) {
     var events = this._events;
 
@@ -3218,100 +3427,130 @@
 
   EventEmitter$1.prototype.eventNames = function eventNames() {
     return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
-  };
+  }; // About 1.5x faster than the two-arg version of Array#splice().
 
-  // About 1.5x faster than the two-arg version of Array#splice().
+
   function spliceOne$1(list, index) {
-    for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) {
       list[i] = list[k];
+    }
+
     list.pop();
   }
 
   function arrayClone$1(arr, i) {
     var copy = new Array(i);
-    while (i--)
+
+    while (i--) {
       copy[i] = arr[i];
+    }
+
     return copy;
   }
 
   function unwrapListeners$1(arr) {
     var ret = new Array(arr.length);
+
     for (var i = 0; i < ret.length; ++i) {
       ret[i] = arr[i].listener || arr[i];
     }
+
     return ret;
   }
 
-  const arrayAddUnique = (arr, item) => {
-    return arr.indexOf(item) === -1 ? [...arr, item] : arr;
+  var arrayAddUnique = function arrayAddUnique(arr, item) {
+    return arr.indexOf(item) === -1 ? [].concat(_toConsumableArray(arr), [item]) : arr;
   };
 
-  class Game extends EventEmitter$1 {
-    constructor() {
-      super();
-      this.loadFromLocalStorage();
-      this.setMaxListeners(100);
-      this.emit('game-updated');
+  var Game =
+  /*#__PURE__*/
+  function (_EventEmitter) {
+    _inherits(Game, _EventEmitter);
+
+    function Game() {
+      var _this;
+
+      _classCallCheck(this, Game);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Game).call(this));
+
+      _this.loadFromLocalStorage();
+
+      _this.setMaxListeners(100);
+
+      _this.emit('game-updated');
+
+      return _this;
     }
 
-    resetGame() {
-      this.unlockedActivities = [];
-      this.saveToLocalStorage();
-      this.emit('game-updated');
-    }
+    _createClass(Game, [{
+      key: "resetGame",
+      value: function resetGame() {
+        this.unlockedActivities = [];
+        this.saveToLocalStorage();
+        this.emit('game-updated');
+      }
+    }, {
+      key: "unlockActivity",
+      value: function unlockActivity(activityId) {
+        this.unlockedActivities = arrayAddUnique(this.unlockedActivities, activityId);
+        this.activeActivity = activityId;
+        this.saveToLocalStorage();
+        this.emit('game-updated');
+      }
+    }, {
+      key: "saveToLocalStorage",
+      value: function saveToLocalStorage() {
+        window.localStorage.setItem('gameData', JSON.stringify({
+          unlockedActivities: this.unlockedActivities
+        }));
+      }
+    }, {
+      key: "computeScore",
+      value: function computeScore() {
+        var score = 0;
+        this.unlockedActivities.forEach(function (activityId) {
+          var activityElement = document.getElementById(activityId);
+          var activityScore = parseInt(activityElement.getAttribute('data-game-activity-points'));
+          score = score + activityScore;
+        });
+        return score;
+      }
+    }, {
+      key: "isActivityUnlocked",
+      value: function isActivityUnlocked(activityId) {
+        return this.unlockedActivities.indexOf(activityId) !== -1;
+      }
+    }, {
+      key: "goToHome",
+      value: function goToHome() {
+        this.activeActivity = null;
+        this.saveToLocalStorage();
+        this.emit('game-updated');
+      }
+    }, {
+      key: "loadFromLocalStorage",
+      value: function loadFromLocalStorage() {
+        var gameDataStr = window.localStorage.getItem('gameData');
+        var storedData = gameDataStr ? JSON.parse(gameDataStr) : null;
+        this.unlockedActivities = storedData ? storedData.unlockedActivities : [];
+      }
+    }]);
 
-    unlockActivity(activityId) {
-      this.unlockedActivities = arrayAddUnique(this.unlockedActivities, activityId);
-      this.activeActivity = activityId;
-      this.saveToLocalStorage();
-      this.emit('game-updated');
-    }
-
-    saveToLocalStorage() {
-      window.localStorage.setItem('gameData', JSON.stringify({
-        unlockedActivities: this.unlockedActivities
-      }));
-    }
-
-    computeScore() {
-      var score = 0;
-      this.unlockedActivities.forEach(activityId => {
-        const activityElement = document.getElementById(activityId);
-        const activityScore = parseInt(activityElement.getAttribute('data-game-activity-points'));
-        score = score + activityScore;
-      });
-      return score;
-    }
-
-    isActivityUnlocked(activityId) {
-      return this.unlockedActivities.indexOf(activityId) !== -1;
-    }
-
-    goToHome() {
-      this.activeActivity = null;
-      this.saveToLocalStorage();
-      this.emit('game-updated');
-    }
-
-    loadFromLocalStorage() {
-      const gameDataStr = window.localStorage.getItem('gameData');
-      const storedData = gameDataStr ? JSON.parse(gameDataStr) : null;
-      this.unlockedActivities = storedData ? storedData.unlockedActivities : [];
-    }
-
-  }
+    return Game;
+  }(EventEmitter$1);
 
   window.game = new Game();
-  document.addEventListener('DOMContentLoaded', () => {
-    const system = index('component', [trigger(), gameActivity(), gameScore(), {
+  document.addEventListener('DOMContentLoaded', function () {
+    var system = index('component', [trigger(), gameActivity(), gameScore(), {
       componentName: 'game',
-      createInstance: () => {
+      createInstance: function createInstance() {
         return {
-          defaultAction: () => {},
-          goToHome: () => {
+          defaultAction: function defaultAction() {},
+          goToHome: function goToHome() {
             window.game.goToHome();
           },
-          resetGame: () => {
+          resetGame: function resetGame() {
             window.game.resetGame();
           }
         };
