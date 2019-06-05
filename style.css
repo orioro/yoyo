@@ -582,6 +582,44 @@ a {
 .activity > .activity__details .step img {
   width: 100%;
 }
+.activity > .activity__details .input-validation {
+  width: 100%;
+  margin-top: 20px;
+}
+.activity > .activity__details .input-validation input {
+  width: 100%;
+  padding: 12px 20px;
+  border: 2px solid black !important;
+  font-weight: 700;
+  line-height: 1.2;
+  color: black;
+  text-align: left;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+.activity > .activity__details .input-validation button {
+  width: auto;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: left;
+  background-color: #EDAD4B;
+}
+.activity > .activity__details .input-validation .answer-right {
+  color: #D1D63E;
+  font-weight: bold;
+  font-size: 24px;
+  -webkit-transform: translateX(30px);
+  transform: translateX(30px);
+  -webkit-transition: -webkit-transform 0.5s ease;
+  transition: -webkit-transform 0.5s ease;
+  transition: transform 0.5s ease;
+  transition: transform 0.5s ease, -webkit-transform 0.5s ease;
+  display: none;
+}
+.activity > .activity__details .input-validation .answer-wrong {
+  display: none;
+}
 .activity.activity--details-open > .activity__details {
   display: block;
 }
@@ -3662,16 +3700,16 @@ ul.list > li {
   font-weight: 700;
   font-size: 30px;
   margin-right: 8px;
-  -webkit-transform: rotateY(0);
-  transform: rotateY(0);
+  -webkit-transform: rotateY(0) scale(1);
+  transform: rotateY(0) scale(1);
 }
 .score-counter > span.score-added {
-  -webkit-transform: rotateY(720deg);
-  transform: rotateY(720deg);
-  -webkit-transition: -webkit-transform 1s ease-in-out;
-  transition: -webkit-transform 1s ease-in-out;
-  transition: transform 1s ease-in-out;
-  transition: transform 1s ease-in-out, -webkit-transform 1s ease-in-out;
+  -webkit-transform: rotateY(1080deg) scale(2);
+  transform: rotateY(1080deg) scale(2);
+  -webkit-transition: -webkit-transform 2.5s ease-in-out;
+  transition: -webkit-transform 2.5s ease-in-out;
+  transition: transform 2.5s ease-in-out;
+  transition: transform 2.5s ease-in-out, -webkit-transform 2.5s ease-in-out;
 }
 .score-counter img {
   height: 30px;
