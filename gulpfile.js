@@ -70,4 +70,4 @@ gulp.task('develop', () => {
   })
 })
 
-// gulp.task('distribute', gulp.parallel(compileHtml, compileLess, copyResources, minifyJs))
+gulp.task('distribute', gulp.parallel(compileHtml, compileLess, copyResources))

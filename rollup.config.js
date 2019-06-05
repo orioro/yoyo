@@ -5,6 +5,7 @@ const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
 const babel = require('rollup-plugin-babel')
 const builtins = require('rollup-plugin-node-builtins')
+const {uglify} = require('rollup-plugin-uglify')
 
 module.exports = {
   input: 'src/index.js',
@@ -32,5 +33,6 @@ module.exports = {
     }),
 
     builtins(),
+    uglify(),
   ],
 }

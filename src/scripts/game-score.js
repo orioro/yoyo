@@ -10,7 +10,7 @@ const createInstance = (system, componentRoot) => {
 
       setTimeout(() => {
         componentRoot.classList.remove('score-added')
-      }, 3000)
+      }, 2500)
     }
 
     componentRoot.innerHTML = window.game.computeScore()
