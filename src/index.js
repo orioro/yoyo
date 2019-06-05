@@ -2,6 +2,7 @@ import {componentSystem, trigger} from '@orioro/web-ui-core'
 
 import gameActivity from './scripts/game-activity'
 import gameScore from './scripts/game-score'
+import textQuizQuestion from './scripts/text-quiz-question'
 import Game from './game'
 
 
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     trigger(),
     gameActivity(),
     gameScore(),
+    textQuizQuestion(),
 
     {
       componentName: 'game',

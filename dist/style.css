@@ -620,6 +620,12 @@ a {
 .activity > .activity__details .input-validation .answer-wrong {
   display: none;
 }
+.activity > .activity__details .input-validation.right .answer-right {
+  display: block;
+}
+.activity > .activity__details .input-validation.wrong .answer-wrong {
+  display: block;
+}
 .activity.activity--details-open > .activity__details {
   display: block;
 }
